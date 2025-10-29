@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>UML - Cuerámaro Prime POS</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({ startOnLoad: true });</script>
+    <style>
+      body { font-family: 'Inter', sans-serif; padding: 2rem; background: #f8f8f8; }
+      h1 { color: #006ad4; }
+      section { margin-bottom: 3rem; }
+      .diagram { background: #fff; border-radius: 12px; padding: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    </style>
+  </head>
+  <body>
+    <h1>Diagramas UML</h1>
+    <section>
+      <h2>Casos de Uso</h2>
+      <div class="diagram mermaid">
+        graph TD
+          Admin((Admin)) -- Gestiona --> Sistema[(Cuerámaro Prime POS)]
+          Mostrador((Mostrador)) -- Opera --> Sistema
+          Sistema -- Reportes --> Admin
+          Sistema -- Ventas --> Mostrador
+      </div>
+    </section>
+    <section>
+      <h2>Componentes</h2>
+      <div class="diagram mermaid">
+        graph LR
+          Frontend[React PWA]
+          API[NestJS API]
+          DB[(PostgreSQL)]
+          Electric[ElectricSQL]
+          Bridge[Tauri Bridge]
+          Frontend -- REST/WebSocket --> API
+          API -- Prisma --> DB
+          API -- Replicación --> Electric
+          Frontend -- Sync Client --> Electric
+          Frontend -- Periféricos --> Bridge
+      </div>
+    </section>
+    <section>
+      <h2>Flujo de Sincronización</h2>
+      <div class="diagram mermaid">
+        sequenceDiagram
+          participant UI as Frontend UI
+          participant Local as SQLite/IndexedDB
+          participant Electric as ElectricSQL
+          participant API as NestJS API
+          UI->>Local: Crear venta
+          Local->>Electric: Replicar cambio LWW
+          Electric-->>API: Sincroniza delta
+          API-->>Local: Confirma reconciliación
+          UI-->>UI: Actualiza indicador de sincronización
+      </div>
+    </section>
+    <section>
+      <h2>Entidad-Relación</h2>
+      <div class="diagram mermaid">
+        erDiagram
+          User ||--o{ Sale : registra
+          Customer ||--o{ Sale : compra
+          Sale ||--|{ SaleItem : contiene
+          Product ||--o{ SaleItem : vendido
+          Supplier ||--o{ Lot : abastece
+          Product ||--o{ Lot : proviene
+          Sale ||--|| Receivable : genera
+          Receivable ||--o{ Payment : registra
+          Sale ||--o{ Expense : "costos asociados"
+      </div>
+    </section>
+  </body>
+</html>

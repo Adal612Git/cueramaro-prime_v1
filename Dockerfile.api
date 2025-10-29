@@ -1,0 +1,8 @@
+FROM node:20-alpine AS base
+WORKDIR /app
+COPY package.json pnpm-lock.yaml* tsconfig*.json nest-cli.json jest.config.ts ./
+COPY src ./src
+COPY prisma ./prisma
+RUN corepack enable && pnpm install --frozen-lockfile || pnpm install
+RUN pnpm build || true
+CMD ["pnpm", "dev"]
