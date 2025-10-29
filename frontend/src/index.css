@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-image: url('./assets/dashboard-bg.svg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}

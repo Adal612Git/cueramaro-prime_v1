@@ -1,0 +1,57 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    container_name: cueramaro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: cueramaro
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  electric:
+    image: electricsql/electric:latest
+    container_name: cueramaro-electric
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://user:pass@db:5432/cueramaro
+    ports:
+      - '5133:5133'
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: cueramaro-api
+    environment:
+      DATABASE_URL: postgresql://user:pass@db:5432/cueramaro
+      ELECTRIC_URL: http://electric:5133
+      JWT_SECRET: supersecret
+      TAURI_BRIDGE_PORT: 5170
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - electric
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: cueramaro-frontend
+    environment:
+      VITE_API_URL: http://api:3000/api
+      VITE_ELECTRIC_URL: http://electric:5133
+    ports:
+      - '5173:5173'
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
