@@ -6,6 +6,7 @@
   "packageManager": "pnpm@8.15.4",
   "scripts": {
     "dev": "nest start --watch",
+    "dev:all": "concurrently -c blue,green -n API,WEB \"pnpm dev\" \"pnpm --dir frontend dev\"",
     "frontend": "pnpm --dir frontend dev",
     "sync": "electric sync",
     "test": "jest",
@@ -30,6 +31,7 @@
     "class-validator": "^0.14.1"
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.0",
     "@nestjs/testing": "^10.0.0",

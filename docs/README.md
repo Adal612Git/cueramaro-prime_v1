@@ -6,9 +6,9 @@ Bienvenido a la guía principal del sistema Cuerámaro Prime POS. Esta documenta
 
 - [pnpm](https://pnpm.io/) 8+
 - Node.js 20 LTS
-- Docker Desktop para Windows con soporte WSL2 habilitado
 - Git
 - Visual Studio Code con extensiones de NestJS, Prisma y TailwindCSS recomendadas
+- (Opcional) Docker Desktop con WSL2 si usarás Postgres + ElectricSQL reales
 
 ## Configuración inicial en Windows 11
 
@@ -29,7 +29,15 @@ Bienvenido a la guía principal del sistema Cuerámaro Prime POS. Esta documenta
    pnpm --dir frontend install
    ```
 
-4. **Levantar infraestructura local**
+4. **Sin Docker (rápido y recomendado para cliente)**
+   
+   Sigue la guía: `docs/INSTALLATION_NO_DOCKER.md`.
+
+   Esto levanta API + Frontend sin requerir Postgres/Electric, usando datos simulados.
+
+   ---
+
+   **Con Docker (opcional, infraestructura real)**
    ```powershell
    pnpm docker:up
    ```
