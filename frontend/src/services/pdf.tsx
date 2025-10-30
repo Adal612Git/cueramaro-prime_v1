@@ -1,4 +1,5 @@
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { formatCurrency } from '../utils/format';
 
 const styles = StyleSheet.create({
   page: { padding: 24, fontSize: 12 },
@@ -32,11 +33,11 @@ function SaleTicket({ folio, customer, total, items }: SaleTicketProps) {
               <Text>
                 {item.quantity} x {item.product}
               </Text>
-              <Text>${(item.quantity * item.price).toFixed(2)}</Text>
+              <Text>{formatCurrency(item.quantity * item.price)}</Text>
             </View>
           ))}
         </View>
-        <Text style={{ marginTop: 16, textAlign: 'right' }}>Total: ${total.toFixed(2)}</Text>
+        <Text style={{ marginTop: 16, textAlign: 'right' }}>Total: {formatCurrency(total)}</Text>
       </Page>
     </Document>
   );

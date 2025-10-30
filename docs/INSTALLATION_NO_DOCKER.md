@@ -41,14 +41,14 @@ También puedes arrancarlos por separado:
 
 ## ¿Y si necesito base de datos real sin Docker?
 
-1. Instala PostgreSQL localmente (Windows Installer) y crea la base `cueramaro`.
+1. Instala PostgreSQL localmente y crea la base `cueramaro`.
 2. Ajusta `DATABASE_URL` en `.env` a `postgresql://user:pass@localhost:5432/cueramaro`.
-3. Ejecuta migraciones de Prisma (cuando el esquema esté disponible en el repo):
+3. Genera cliente Prisma y aplica el esquema + seed:
 
 ```powershell
-pnpm prisma migrate deploy
-pnpm prisma db push
+pnpm prisma:generate
+pnpm prisma:migrate
+pnpm prisma:seed
 ```
 
 4. ElectricSQL (servicio de sincronización) requiere instalar y ejecutar su servicio fuera de Docker. Este repositorio actualmente incluye un modo con datos simulados para que el sistema sea usable sin esa infraestructura.
-

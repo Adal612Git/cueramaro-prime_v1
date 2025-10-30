@@ -52,7 +52,7 @@ Bienvenido a la guía principal del sistema Cuerámaro Prime POS. Esta documenta
 
 ## Arquitectura
 
-- **Backend**: NestJS + Prisma sobre PostgreSQL con sincronización ElectricSQL
+- **Backend**: NestJS + Prisma sobre PostgreSQL con sincronización ElectricSQL (Prisma y seed incluidos)
 - **Frontend**: React + Vite + Tailwind + Zustand, preparado para ElectricSQL client
 - **Bridge**: Carpeta `bridge/` reservada para integración Tauri + WebSocket/SerialPort
 
@@ -87,4 +87,3 @@ bridge/               # Stub de servicio hardware
 - Completar integración con ElectricSQL client en frontend.
 - Implementar autenticación JWT y guardas RBAC.
 - Desarrollar bridge Tauri para báscula y lector de códigos.
-

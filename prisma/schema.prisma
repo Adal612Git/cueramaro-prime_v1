@@ -1,0 +1,172 @@
+// Prisma schema for Cuerámaro Prime POS
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums de negocio ---
+enum CreditTerms {
+  contado
+  credito
+}
+
+enum Role {
+  ADMIN
+  MOSTRADOR
+}
+
+enum PaymentMethod {
+  efectivo
+  transferencia
+  credito
+  tarjeta
+  otro
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?
+  phone     String?
+  whatsapp  String?
+  email     String?
+  company   String?
+  address   String?
+  city      String?
+  state     String?
+  postalCode String?
+  website   String?
+  rfcCurp   String?
+  rfc       String?
+  curp      String?
+  creditTerms CreditTerms @default(contado)
+  creditDays  Int?
+  isActive  Boolean  @default(true)
+  products  Product[]
+  // Información comercial y bancaria
+  commercialInfo Json?
+  discountInfo   Json?
+  bankName       String?
+  bankAccount    String?
+  clabe          String?
+  directDelivery Boolean @default(false) // "Llega directo"
+  proteinTypeId   String?
+  proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
+  proteinSubTypeId String?
+  proteinSubType   ProteinSubType? @relation(name: "SupplierProteinSubType", fields: [proteinSubTypeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  sku         String?   @unique
+  category    String?   // proteína
+  description String?
+  distributor String?
+  brand       String?
+  purchasePrice Float?  // precio de compra
+  price       Float     // precio de venta
+  unit        String?   // 'kg' | 'pz' (por ahora libre)
+  stock       Int       @default(0) // legado para vistas actuales
+  stockQty    Float?    // soporta kg/piezas decimales
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  proteinTypeId   String?
+  proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
+  proteinSubTypeId String?
+  proteinSubType   ProteinSubType? @relation(fields: [proteinSubTypeId], references: [id])
+  saleItems   SaleItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  whatsapp  String?
+  email     String?
+  businessName    String?
+  personalAddress String?
+  businessAddress String?
+  rfcCurp         String?
+  customerType    CreditTerms @default(contado)
+  creditDays      Int?
+  creditLimit     Float?
+  authorizedPeople Json?
+  isActive        Boolean @default(true)
+  sales      Sale[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  concept     String? // concepto corto
+  description String
+  amount      Float
+  method      PaymentMethod @default(efectivo)
+  isDeductible Boolean @default(false)
+  attachmentUrl String?
+  createdAt   DateTime @default(now())
+}
+
+model Sale {
+  id        String   @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  total     Float
+  paidAmount Float? // abonos
+  paymentMethod PaymentMethod @default(efectivo)
+  notes     String?
+  creditDueDate DateTime?
+  createdAt DateTime @default(now())
+  items     SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Float
+  unitPrice Float
+  discount  Float   @default(0)
+  lineTotal Float
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(MOSTRADOR)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ProteinType {
+  id        String @id @default(cuid())
+  name      String @unique
+  subtypes  ProteinSubType[]
+  products  Product[]
+  suppliers Supplier[]
+}
+
+model ProteinSubType {
+  id        String @id @default(cuid())
+  name      String
+  typeId    String
+  type      ProteinType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  suppliers Supplier[] @relation(name: "SupplierProteinSubType")
+  @@unique([name, typeId])
+}

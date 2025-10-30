@@ -2,9 +2,182 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #0a59c1; /* Azul corporativo */
+  --color-accent: #f57c00;  /* Naranja acento */
+}
+
+/* Escalado responsivo global */
+html { font-size: clamp(14px, 1vw + 0.5rem, 18px); }
+
+/* Fondo por defecto mínimo; las vistas controlan su propio fondo */
+body { min-height: 100vh; }
+
+/* Login: degradado radial especificado y overlay de blur */
+.login-bg {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: radial-gradient(circle at 30% 30%, #0a59c1 0%, #f57c00 100%);
+}
+
+.login-blurs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.login-blurs::before,
+.login-blurs::after {
+  content: '';
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  filter: blur(60px);
+  opacity: 0.2;
+  border-radius: 50%;
+}
+.login-blurs::before { background: var(--color-primary); top: 10%; left: 6%; }
+.login-blurs::after { background: var(--color-accent); bottom: 8%; right: 10%; }
+
+/* Fade-in para tarjeta de login */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn 480ms ease both; }
+
+/* Inputs y botones: transiciones y placeholders */
+input, select, textarea, button { transition: all 0.3s ease-in-out; }
+
+::placeholder { color: #7b7b7b; opacity: 1; font-family: 'Montserrat', sans-serif; font-size: 15px; }
+
+/* Tarjeta de login y botón principal siguiendo especificación */
+.login-card {
+  background: rgba(255,255,255,0.92);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.btn-primary {
+  width: min(90%, 360px);
+  height: 48px;
+  border-radius: 8px;
+  background: #f57c00;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(245,124,0,0.5);
+  transition: all 0.3s ease-in-out;
+}
+.btn-primary:hover { background: #ff9100; transform: scale(1.03); }
+.btn-primary:active { transform: translateY(0); }
+
+/* Spinner minimalista para botón */
+.btn-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Efecto pulse para ícono de huella */
+.pulse {
+  position: relative;
+}
+.pulse::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255,255,255,0.5);
+  animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  70% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+/* Fondo para ShellLayout (interior) usando degradado de marca */
+.app-bg {
+  background: radial-gradient(circle at 30% 30%, #0a59c1 0%, #f57c00 100%);
+}
+
+/* Patrón de fondo escalable */
 body {
   background-image: url('./assets/dashboard-bg.svg');
-  background-size: cover;
+  background-repeat: repeat;
+  background-size: clamp(280px, 25vw, 400px);
   background-position: center;
-  min-height: 100vh;
+  background-attachment: fixed;
 }
+
+/* Grupos e inputs del login (anchos, bordes, iconos) */
+.input-group {
+  position: relative;
+  width: min(90%, 360px);
+  margin-inline: auto;
+}
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-primary);
+}
+.input-control {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.9);
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #1E1E1E;
+  padding-left: 44px; /* espacio para el icono */
+  padding-right: 12px;
+  outline: none;
+}
+.input-control:focus {
+  border-color: color-mix(in oklab, var(--color-primary) 85%, #ffffff 15%);
+  box-shadow: 0 0 0 4px rgba(10, 89, 193, 0.12);
+}
+
+/* Paneles y tarjetas para dashboard */
+.panel {
+  background: rgba(255,255,255,0.9);
+  border-radius: 24px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.3s ease-in-out;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+}
+.card:hover { transform: translateY(-1px); }
+
+/* Tipografía y utilidades */
+.font-mont { font-family: 'Montserrat', sans-serif; }
+.login-title { font-family: 'Montserrat', sans-serif; font-weight: 600; color: #2B4C9F; }
+.login-phrase { font-family: 'Montserrat', sans-serif; font-weight: 300; font-style: italic; font-size: 14px; color: rgba(255,255,255,0.7); }
+
+/* Grid del dashboard con breakpoints sugeridos */
+.dashboard-grid { display: grid; gap: 1rem; }
+@media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+@media (min-width: 769px) and (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1201px) { .dashboard-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.kpi-card { min-height: min(130px, 20vh); }

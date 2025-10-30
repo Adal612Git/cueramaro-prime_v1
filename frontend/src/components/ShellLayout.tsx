@@ -2,7 +2,8 @@ import { PropsWithChildren } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, Users, Package, ShoppingCart, Receipt, BarChart3, Settings } from 'lucide-react';
 import { ConnectionBadge } from './ConnectionBadge';
-import logoSymbol from '../assets/logo-placeholder.svg';
+import logoSymbol from '../assets/CUERAMARO-CARNES-LOGO-SIMBOLO-sin-fondo.png';
+import { useAuthStore } from '../store/useAuthStore';
 
 const links = [
   { to: '/', label: 'Dashboard', icon: BarChart3 },
@@ -16,23 +17,39 @@ const links = [
 ];
 
 export function ShellLayout({ children }: PropsWithChildren) {
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const visible = (() => {
+    if (!user) return links;
+    if (user.role === 'MOSTRADOR') {
+      return links.filter((l) => ['/', '/sales', '/products'].includes(l.to));
+    }
+    return links;
+  })();
   return (
-    <div className="min-h-screen bg-transparent backdrop-blur-sm">
+    <div className="min-h-screen app-bg backdrop-blur-sm">
       <header className="flex flex-col gap-4 px-6 py-4 text-white md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Menu className="hidden md:block" />
           <img src={logoSymbol} alt="Cuerámaro Prime" className="h-12 w-12 rounded-full bg-white/10 p-1" />
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-white/70">¡Bienvenido a</p>
+            <p className="text-sm tracking-[0.3em] text-white/70">¡Bienvenido a</p>
             <h1 className="text-2xl font-bold">Cuerámaro Prime POS</h1>
           </div>
         </div>
-        <ConnectionBadge />
+        <div className="flex items-center gap-4">
+          <ConnectionBadge />
+          {user && (
+            <button onClick={logout} className="rounded bg-white/20 px-3 py-1 text-sm hover:bg-white/30">
+              Cerrar sesión
+            </button>
+          )}
+        </div>
       </header>
-      <div className="grid gap-6 px-4 pb-10 md:grid-cols-[260px_1fr] md:px-10">
+      <div className="grid gap-6 px-[clamp(1rem,4vw,3rem)] pb-10 md:grid-cols-[260px_1fr] max-w-[1200px] mx-auto w-full">
         <aside className="rounded-3xl bg-white/10 p-6 shadow-lg backdrop-blur-lg">
           <nav className="flex flex-col gap-2">
-            {links.map(({ to, label, icon: Icon }) => (
+            {visible.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -49,12 +66,12 @@ export function ShellLayout({ children }: PropsWithChildren) {
             ))}
           </nav>
         </aside>
-        <main className="rounded-3xl bg-white/90 p-6 shadow-2xl backdrop-blur-xl">
+        <main className="panel p-6">
           {children}
         </main>
       </div>
       <footer className="px-6 pb-6 text-center text-xs text-white/70">
-        <Link to="/reports">Ver reportes detallados</Link>
+        {(!user || user.role === 'ADMIN') && <Link to="/reports">Ver reportes detallados</Link>}
       </footer>
     </div>
   );

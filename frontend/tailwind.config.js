@@ -4,13 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#006AD4',
-        secondary: '#FF6F00',
+        primary: '#0a59c1',
+        secondary: '#f57c00',
         background: '#F8F8F8',
         text: '#1E1E1E'
       },
       fontFamily: {
-        sans: ['"Inter"', '"Poppins"', 'sans-serif']
+        sans: ['"Poppins"', '"Montserrat"', '"Inter"', 'sans-serif']
       }
     }
   },

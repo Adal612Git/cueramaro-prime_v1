@@ -8,15 +8,20 @@ type DashboardResponse = {
     margin: number;
     products: number;
     customers: number;
+    accountsReceivable: number;
   };
   recentSales: Array<{ id: string; total: number; createdAt: string }>;
 };
 
-export function useDashboardData() {
+export function useDashboardData(params?: { from?: string; to?: string }) {
   return useQuery<DashboardResponse>({
-    queryKey: ['dashboard'],
+    queryKey: ['dashboard', params?.from ?? '', params?.to ?? ''],
     queryFn: async () => {
-      const { data } = await api.get<DashboardResponse>('/reports/dashboard');
+      const search = new URLSearchParams();
+      if (params?.from) search.set('from', params.from);
+      if (params?.to) search.set('to', params.to);
+      const qs = search.toString();
+      const { data } = await api.get<DashboardResponse>(`/reports/dashboard${qs ? `?${qs}` : ''}`);
       return data;
     },
     staleTime: 10_000

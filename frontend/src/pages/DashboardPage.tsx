@@ -42,7 +42,7 @@ export function DashboardPage() {
     return [
       {
         title: 'Ventas del Día',
-        value: `$${data.totals.sales.toFixed(2)}`,
+        value: `${formatCurrency(data.totals.sales)}`,
         change: `${data.recentSales.length} ventas recientes`,
         icon: ShoppingBag,
         description: 'Datos en vivo desde ElectricSQL'
@@ -50,7 +50,7 @@ export function DashboardPage() {
       {
         title: 'Productos en Inventario',
         value: data.totals.products.toString(),
-        change: `${data.totals.margin.toFixed(2)} margen`,
+        change: `${formatCurrency(data.totals.margin)} margen`,
         icon: Package,
         description: 'Conteo sincronizado'
       },
@@ -63,8 +63,8 @@ export function DashboardPage() {
       },
       {
         title: 'Cuentas por Cobrar',
-        value: `$${(data.totals.sales - data.totals.expenses).toFixed(2)}`,
-        change: 'Saldo estimado',
+        value: `${formatCurrency(data.totals.accountsReceivable)}`,
+        change: 'Saldo pendiente real',
         icon: CreditCard,
         description: 'Prepárate para gestionar abonos'
       }
@@ -73,13 +73,13 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="dashboard-grid">
         {cards.map(({ title, value, change, icon: Icon, description }) => (
-          <article key={title} className="rounded-2xl bg-white p-5 shadow-md">
+          <article key={title} className="kpi-card card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary/80">{title}</p>
-                <p className="mt-2 text-3xl font-bold text-text">{value}</p>
+                <p className="text-sm font-semibold text-primary/80 font-mont">{title}</p>
+                <p className="mt-2 text-3xl font-bold text-text font-mont">{value}</p>
               </div>
               <div className="rounded-full bg-primary/10 p-3 text-primary">
                 <Icon size={28} />
@@ -103,7 +103,7 @@ export function DashboardPage() {
             'Reportes',
             'Usuarios y Roles'
           ].map((module) => (
-            <div key={module} className="rounded-xl bg-white p-4 text-center shadow">
+            <div key={module} className="card p-4 text-center">
               <p className="text-sm font-semibold text-text">{module}</p>
               <p className="mt-2 text-xs text-gray-500">Disponible offline con sincronización automática.</p>
             </div>
@@ -113,3 +113,4 @@ export function DashboardPage() {
     </div>
   );
 }
+import { formatCurrency } from '../utils/format';

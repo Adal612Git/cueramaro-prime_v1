@@ -26,9 +26,9 @@ pnpm --dir frontend install
 
 ```powershell
 pnpm docker:up
-pnpm prisma migrate deploy
-pnpm prisma db push
-psql postgresql://user:pass@localhost:5432/cueramaro -f prisma/extensions.sql
+pnpm prisma:generate
+pnpm prisma:migrate
+pnpm prisma:seed
 ```
 
 ## 5. Ejecutar aplicaciones
