@@ -46,7 +46,7 @@ export function SuppliersPage() {
   };
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-bold text-text">Proveedores</h2>
+      <h2 className="module-title mb-4 text-2xl">Proveedores</h2>
       <div className="mb-4 flex items-center gap-2">
         <button className="rounded bg-primary px-3 py-2 text-white" onClick={() => setShowNew((v) => !v)}>
           {showNew ? 'Cerrar' : 'Nuevo Proveedor'}

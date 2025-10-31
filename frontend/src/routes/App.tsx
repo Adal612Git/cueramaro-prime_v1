@@ -41,6 +41,7 @@ function AdminOnly({ children }: PropsWithChildren) {
 
 export default function App() {
   const setStatus = useConnectionStore((state) => state.setStatus);
+  const location = useLocation();
 
   useEffect(() => {
     const updateStatus = () => setStatus(navigator.onLine ? 'online' : 'offline');
@@ -52,6 +53,16 @@ export default function App() {
       window.removeEventListener('offline', updateStatus);
     };
   }, [setStatus]);
+
+  // Toggle a body class for login route to control global background
+  useEffect(() => {
+    const isLogin = location.pathname === '/login';
+    document.body.classList.toggle('login-page', isLogin);
+    return () => {
+      // ensure cleanup if component unmounts
+      document.body.classList.remove('login-page');
+    };
+  }, [location.pathname]);
 
   return (
     <Routes>

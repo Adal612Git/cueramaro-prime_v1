@@ -7,7 +7,7 @@ export function ReportsPage() {
   const { data, isLoading, refetch } = useDashboardData({ from, to });
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-text">Reportes</h2>
+      <h2 className="module-title text-2xl">Reportes</h2>
       <div className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow">
         <div>
           <label className="block text-sm font-medium text-gray-600">Desde</label>

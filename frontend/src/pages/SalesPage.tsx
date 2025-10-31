@@ -59,7 +59,7 @@ export function SalesPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-text">Ventas</h2>
+      <h2 className="module-title text-2xl">Ventas</h2>
       <div className="grid gap-4 md:grid-cols-3">
         <div>
           <label className="block text-sm font-medium">Cliente</label>

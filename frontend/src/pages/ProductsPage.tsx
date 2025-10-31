@@ -30,7 +30,7 @@ export function ProductsPage() {
   };
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-bold text-text">Productos</h2>
+      <h2 className="module-title mb-4 text-2xl">Productos</h2>
       {isLoading ? (
         <p>Cargando...</p>
       ) : (

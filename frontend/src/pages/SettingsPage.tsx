@@ -4,7 +4,7 @@ export function SettingsPage() {
   const { data, isLoading } = useSettings();
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-text">Configuración</h2>
+      <h2 className="module-title text-2xl">Configuración</h2>
       {isLoading ? (
         <p>Cargando...</p>
       ) : (
@@ -29,4 +29,3 @@ export function SettingsPage() {
     </div>
   );
 }
-

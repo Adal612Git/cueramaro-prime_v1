@@ -91,7 +91,7 @@ export function DashboardPage() {
         ))}
       </section>
       <section className="rounded-2xl bg-primary/5 p-6 shadow-inner">
-        <h2 className="text-xl font-bold text-primary">Módulos Principales</h2>
+        <h2 className="module-title text-xl">Módulos Principales</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             'Ventas POS',

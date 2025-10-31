@@ -1,3 +1,4 @@
+/* Ajustes automáticos por script */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,8 +11,12 @@
 /* Escalado responsivo global */
 html { font-size: clamp(14px, 1vw + 0.5rem, 18px); }
 
-/* Fondo por defecto mínimo; las vistas controlan su propio fondo */
-body { min-height: 100vh; }
+/* Fondo y layout base */
+body {
+  min-height: 100vh;
+  background-color: #ffffff; /* fallback para evitar parpadeos */
+  overflow-x: hidden;
+}
 
 /* Login: degradado radial especificado y overlay de blur */
 .login-bg {
@@ -107,18 +112,47 @@ input, select, textarea, button { transition: all 0.3s ease-in-out; }
   100% { transform: scale(1.2); opacity: 0; }
 }
 
-/* Fondo para ShellLayout (interior) usando degradado de marca */
-.app-bg {
-  background: radial-gradient(circle at 30% 30%, #0a59c1 0%, #f57c00 100%);
+/* Contenedor de la app: transparente para dejar ver el fondo del body */
+.app-bg { background: transparent; }
+
+/* Fondo oficial para todas las vistas excepto login */
+body:not(.login-page) {
+  /* Capa 1: veladura superior para ocultar sólo la franja naranja
+     Capa 2: imagen de fondo */
+  --top-mask: clamp(12px, 2.2vh, 40px);
+  background-image:
+    linear-gradient(to bottom, #ffffff 0, #ffffff var(--top-mask), rgba(255,255,255,0) calc(var(--top-mask) + 1px)),
+    url('/fondo-carnes-cueramaro.png');
+  background-repeat: no-repeat, no-repeat;
+  /* Imagen ampliada en ancho, alto proporcional */
+  background-size: 100% 100%, 115% auto;
+  /* Alinear imagen hacia arriba */
+  background-position: top center, top center;
+  background-attachment: fixed, fixed;
 }
 
-/* Patrón de fondo escalable */
-body {
-  background-image: url('./assets/dashboard-bg.svg');
-  background-repeat: repeat;
-  background-size: clamp(280px, 25vw, 400px);
-  background-position: center;
-  background-attachment: fixed;
+/* Evitar saltos en pantallas pequeñas: desactivar fixed */
+@media (max-width: 1024px) {
+  body:not(.login-page) {
+    background-attachment: scroll, scroll;
+  }
+}
+
+/* Afinar ampliación por anchos de pantalla para consistencia */
+@media (min-width: 1280px) and (max-width: 1679px) {
+  body:not(.login-page) {
+    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+  }
+}
+@media (min-width: 1680px) and (max-width: 1919px) {
+  body:not(.login-page) {
+    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+  }
+}
+@media (min-width: 1920px) {
+  body:not(.login-page) {
+    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+  }
 }
 
 /* Grupos e inputs del login (anchos, bordes, iconos) */
@@ -162,12 +196,56 @@ body {
   transition: all 0.3s ease-in-out;
 }
 .card {
-  background: #fff;
+  background: rgba(255,255,255,0.9);
   border-radius: 16px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   transition: all 0.3s ease-in-out;
 }
 .card:hover { transform: translateY(-1px); }
+
+/* Forzar efecto "glass" en bloques blancos dentro del panel principal */
+.panel .bg-white,
+.panel .rounded-xl.bg-white {
+  background: rgba(255,255,255,0.9) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Sidebar con degradado azul y glass sutil */
+.sidebar {
+  background: linear-gradient(180deg, rgba(10,89,193,0.85) 0%, rgba(10,89,193,0.70) 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 6px 0 24px rgba(0,0,0,0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Botón de cerrar sesión: alto contraste y estilo glass */
+.logout-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 700;
+  color: #0a59c1;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(10,89,193,0.22);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  backdrop-filter: saturate(160%) blur(4px);
+  -webkit-backdrop-filter: saturate(160%) blur(4px);
+}
+.logout-btn:hover { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+.logout-btn:active { transform: translateY(0); }
+.logout-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(10,89,193,0.25); }
+
+/* Encabezados de módulo: azul corporativo subrayado sutil */
+.module-title {
+  color: #0a59c1;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(10,89,193,0.35);
+  padding-bottom: 0.35rem;
+}
 
 /* Tipografía y utilidades */
 .font-mont { font-family: 'Montserrat', sans-serif; }

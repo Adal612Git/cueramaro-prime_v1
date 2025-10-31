@@ -19,7 +19,7 @@ export function ExpensesPage() {
   return (
     <div>
       <div className="mb-4 flex items-baseline justify-between">
-        <h2 className="text-2xl font-bold text-text">Gastos</h2>
+        <h2 className="module-title text-2xl">Gastos</h2>
         <p className="text-sm text-secondary">Total: {formatCurrency(total)}</p>
       </div>
       <div className="mb-4">
