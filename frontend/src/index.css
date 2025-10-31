@@ -117,41 +117,42 @@ input, select, textarea, button { transition: all 0.3s ease-in-out; }
 
 /* Fondo oficial para todas las vistas excepto login */
 body:not(.login-page) {
-  /* Capa 1: veladura superior para ocultar sólo la franja naranja
-     Capa 2: imagen de fondo */
-  --top-mask: clamp(12px, 2.2vh, 40px);
-  background-image:
-    linear-gradient(to bottom, #ffffff 0, #ffffff var(--top-mask), rgba(255,255,255,0) calc(var(--top-mask) + 1px)),
-    url('/fondo-carnes-cueramaro.png');
-  background-repeat: no-repeat, no-repeat;
+  /* Control fino del encuadre vertical (sin veladura) */
+  --image-scale: 120%;    /* zoom horizontal (alto proporcional) */
+  --image-offset-y: -6vh; /* valor previo restaurado */
+  background-image: url('/fondo-carnes-cueramaro.png');
+  background-repeat: no-repeat;
   /* Imagen ampliada en ancho, alto proporcional */
-  background-size: 100% 100%, 115% auto;
-  /* Alinear imagen hacia arriba */
-  background-position: top center, top center;
-  background-attachment: fixed, fixed;
+  background-size: var(--image-scale) auto;
+  /* Alinear imagen y aplicar desplazamiento vertical */
+  background-position: center var(--image-offset-y);
+  background-attachment: fixed;
 }
 
 /* Evitar saltos en pantallas pequeñas: desactivar fixed */
 @media (max-width: 1024px) {
   body:not(.login-page) {
-    background-attachment: scroll, scroll;
+    background-attachment: scroll;
   }
 }
 
 /* Afinar ampliación por anchos de pantalla para consistencia */
 @media (min-width: 1280px) and (max-width: 1679px) {
   body:not(.login-page) {
-    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+    --image-scale: 122%;
+    --image-offset-y: -7vh;
   }
 }
 @media (min-width: 1680px) and (max-width: 1919px) {
   body:not(.login-page) {
-    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+    --image-scale: 126%;
+    --image-offset-y: -8vh;
   }
 }
 @media (min-width: 1920px) {
   body:not(.login-page) {
-    background-size: 100% 100%, 130% auto;  /* Amplía altura para mostrar franja azul inferior */
+    --image-scale: 130%;
+    --image-offset-y: -9vh;
   }
 }
 
