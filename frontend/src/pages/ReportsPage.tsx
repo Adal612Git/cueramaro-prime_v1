@@ -1,14 +1,56 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { formatCurrency } from '../utils/format';
 
 export function ReportsPage() {
   const [from, setFrom] = useState<string>('');
   const [to, setTo] = useState<string>('');
   const { data, isLoading, refetch } = useDashboardData({ from, to });
+  const applyRange = (start?: Date, end?: Date) => {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    if (start) setFrom(fmt(start));
+    if (end) setTo(fmt(end));
+    setTimeout(() => refetch(), 0);
+  };
+  const today = useMemo(() => {
+    const d = new Date(); d.setHours(0,0,0,0); return d;
+  }, []);
+  const startOfWeek = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay(); // 0 dom ... 6 sab
+    const diff = (day + 6) % 7; // lunes como inicio
+    d.setDate(d.getDate() - diff);
+    d.setHours(0,0,0,0);
+    return d;
+  }, []);
+  const startOfMonth = useMemo(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; }, []);
+
+  const exportCsv = () => {
+    const rows = [
+      ['id', 'total', 'fecha'],
+      ...(data?.recentSales || []).map((s) => [s.id, String(s.total), new Date(s.createdAt).toISOString()])
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0,10);
+    a.download = `reporte_${from || 'inicio'}_${to || stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   return (
     <div className="space-y-6">
       <h2 className="module-title text-2xl">Reportes</h2>
       <div className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow">
+        <div className="flex items-center gap-2">
+          <button className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20" onClick={() => applyRange(today, new Date())}>Día</button>
+          <button className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20" onClick={() => applyRange(startOfWeek, new Date())}>Semana</button>
+          <button className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20" onClick={() => applyRange(startOfMonth, new Date())}>Mes</button>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-600">Desde</label>
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded border p-2" />
@@ -23,6 +65,9 @@ export function ReportsPage() {
         <button className="rounded bg-gray-200 px-3 py-2" onClick={() => { setFrom(''); setTo(''); refetch(); }}>
           Limpiar
         </button>
+        <div className="ml-auto">
+          <button className="rounded bg-green-600 px-3 py-2 font-semibold text-white" onClick={exportCsv}>Exportar</button>
+        </div>
       </div>
       {isLoading ? (
         <p>Cargando...</p>
@@ -71,4 +116,3 @@ export function ReportsPage() {
     </div>
   );
 }
-import { formatCurrency } from '../utils/format';

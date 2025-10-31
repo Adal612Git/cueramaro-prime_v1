@@ -30,6 +30,7 @@ enum PaymentMethod {
 model Supplier {
   id        String   @id @default(cuid())
   name      String
+  clientName String?
   contact   String?
   phone     String?
   whatsapp  String?
@@ -82,19 +83,23 @@ model Product {
   proteinSubTypeId String?
   proteinSubType   ProteinSubType? @relation(fields: [proteinSubTypeId], references: [id])
   saleItems   SaleItem[]
+  lots        InventoryLot[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
 model Customer {
   id        String   @id @default(cuid())
+  code      Int?     @unique @default(autoincrement())
   name      String
   phone     String?
   whatsapp  String?
   email     String?
   businessName    String?
   personalAddress String?
+  personalPostalCode String?
   businessAddress String?
+  businessPostalCode String?
   rfcCurp         String?
   customerType    CreditTerms @default(contado)
   creditDays      Int?
@@ -169,4 +174,24 @@ model ProteinSubType {
   products  Product[]
   suppliers Supplier[] @relation(name: "SupplierProteinSubType")
   @@unique([name, typeId])
+}
+
+// Lotes de inventario con fechas de llegada y caducidad
+model InventoryLot {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku            String?
+  barcode        String?
+  quantity       Float    @default(0)
+  arrivalDate    DateTime
+  expirationDate DateTime?
+  cost           Float?
+  lotCode        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([productId])
+  @@index([arrivalDate])
+  @@index([expirationDate])
 }

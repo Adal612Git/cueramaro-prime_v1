@@ -71,14 +71,28 @@ export class CustomersController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   async create(@Body() body: CreateCustomerDto) {
-    return this.prisma.customer.create({ data: body as any });
+    const payload: any = { ...body };
+    // Lógica de congruencia: si hay días de crédito > 0, forzar tipo 'credito'.
+    if (typeof body.creditDays === 'number' && body.creditDays > 0) {
+      payload.customerType = CreditTerms.credito;
+    } else if (!body.customerType) {
+      // Si no se indicó tipo explícitamente, por omisión 'contado'.
+      payload.customerType = CreditTerms.contado;
+    }
+    return this.prisma.customer.create({ data: payload });
   }
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   async update(@Param('id') id: string, @Body() body: Partial<CreateCustomerDto>) {
-    return this.prisma.customer.update({ where: { id }, data: body as any });
+    const payload: any = { ...body };
+    // Si se actualizan días de crédito a > 0, forzar 'credito'.
+    if (typeof body.creditDays === 'number' && body.creditDays > 0) {
+      payload.customerType = CreditTerms.credito;
+    }
+    // Si creditDays es 0 o no está, respetar customerType si viene; si no, no cambiar.
+    return this.prisma.customer.update({ where: { id }, data: payload });
   }
 
   @Delete(':id')

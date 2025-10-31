@@ -75,11 +75,23 @@ export class SalesController {
 
     const itemsWithTotal = body.items.map((i) => {
       const p = map.get(i.productId)!;
-      const discount = i.discount ?? 0;
-      const lineTotal = Math.max(0, i.unitPrice * i.quantity - discount);
-      return { ...i, discount, lineTotal };
+      const unitPrice = i.unitPrice && isFinite(i.unitPrice) && i.unitPrice > 0 ? i.unitPrice : (p as any).price || 0;
+      const quantity = i.quantity;
+      const maxDiscount = unitPrice * quantity;
+      const discount = Math.min(Math.max(0, i.discount ?? 0), maxDiscount);
+      const lineTotal = unitPrice * quantity - discount;
+      if (!isFinite(unitPrice) || unitPrice <= 0) {
+        throw new BadRequestException('Precio inválido para uno de los productos');
+      }
+      if (!isFinite(lineTotal) || lineTotal <= 0) {
+        throw new BadRequestException('Hay líneas con importe cero o negativo');
+      }
+      return { productId: i.productId, quantity, unitPrice, discount, lineTotal };
     });
     const total = itemsWithTotal.reduce((acc, i) => acc + i.lineTotal, 0);
+    if (!isFinite(total) || total <= 0) {
+      throw new BadRequestException('El total de la venta debe ser mayor a cero');
+    }
 
     // Crear venta y partidas
     const sale = await this.prisma.sale.create({
@@ -95,7 +107,7 @@ export class SalesController {
             productId: i.productId,
             quantity: i.quantity,
             unitPrice: i.unitPrice,
-            discount: i.discount ?? 0,
+            discount: i.discount,
             lineTotal: i.lineTotal
           }))
         }

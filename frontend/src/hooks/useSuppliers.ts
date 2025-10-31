@@ -4,6 +4,7 @@ import api from '../services/api';
 export type Supplier = {
   id: string;
   name: string; // negocio/empresa
+  clientName?: string | null;
   contact?: string | null; // persona de contacto
   phone?: string | null;
   whatsapp?: string | null;

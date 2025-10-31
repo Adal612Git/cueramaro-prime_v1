@@ -12,6 +12,7 @@ import { ShellLayout } from '../components/ShellLayout';
 import { useConnectionStore } from '../store/useConnectionStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { SalesPage } from '../pages/SalesPage';
+import { IngresoPage } from '../pages/IngresoPage';
 
 const modules = [
   { path: '/', element: <DashboardPage /> },
@@ -80,6 +81,7 @@ export default function App() {
               <Route path="/expenses" element={<RequireAuth><AdminOnly><ExpensesPage /></AdminOnly></RequireAuth>} />
               <Route path="/reports" element={<RequireAuth><AdminOnly><ReportsPage /></AdminOnly></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth><AdminOnly><SettingsPage /></AdminOnly></RequireAuth>} />
+              <Route path="/ingreso" element={<RequireAuth><IngresoPage /></RequireAuth>} />
             </Routes>
           </ShellLayout>
         }

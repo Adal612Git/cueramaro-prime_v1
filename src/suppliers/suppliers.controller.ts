@@ -17,6 +17,10 @@ class CreateSupplierDto {
 
   @IsOptional()
   @IsString()
+  clientName?: string;
+
+  @IsOptional()
+  @IsString()
   phone?: string;
 
   @IsOptional()

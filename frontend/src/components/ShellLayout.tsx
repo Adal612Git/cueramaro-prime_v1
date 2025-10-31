@@ -13,7 +13,8 @@ const links = [
   { to: '/suppliers', label: 'Proveedores', icon: Receipt },
   { to: '/expenses', label: 'Gastos', icon: Receipt },
   { to: '/reports', label: 'Reportes', icon: BarChart3 },
-  { to: '/settings', label: 'Configuración', icon: Settings }
+  { to: '/settings', label: 'Configuración', icon: Settings },
+  { to: '/ingreso', label: 'Ingreso', icon: Package }
 ];
 
 export function ShellLayout({ children }: PropsWithChildren) {
@@ -22,7 +23,7 @@ export function ShellLayout({ children }: PropsWithChildren) {
   const visible = (() => {
     if (!user) return links;
     if (user.role === 'MOSTRADOR') {
-      return links.filter((l) => ['/', '/sales', '/products'].includes(l.to));
+      return links.filter((l) => ['/', '/sales', '/products', '/ingreso'].includes(l.to));
     }
     return links;
   })();

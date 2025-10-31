@@ -1,0 +1,1702 @@
+INFORME DE ANÁLISIS DEL SISTEMA (Generado por script de Python)
+===============================================================
+
+### ADVERTENCIA DE SEGURIDAD ###
+Este script NO lee el archivo .env. Por favor, NUNCA compartas
+tu archivo .env real, ya que contiene contraseñas y claves secretas.
+
+Estado de .env: Encontrado (y omitido por seguridad)
+===============================================================
+
+### 1. Archivos Clave de Configuración ###
+
+--- [ prisma/schema.prisma ] ---
+// Prisma schema for Cuerámaro Prime POS
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums de negocio ---
+enum CreditTerms {
+  contado
+  credito
+}
+
+enum Role {
+  ADMIN
+  MOSTRADOR
+}
+
+enum PaymentMethod {
+  efectivo
+  transferencia
+  credito
+  tarjeta
+  otro
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?
+  phone     String?
+  whatsapp  String?
+  email     String?
+  company   String?
+  address   String?
+  city      String?
+  state     String?
+  postalCode String?
+  website   String?
+  rfcCurp   String?
+  rfc       String?
+  curp      String?
+  creditTerms CreditTerms @default(contado)
+  creditDays  Int?
+  isActive  Boolean  @default(true)
+  products  Product[]
+  // Información comercial y bancaria
+  commercialInfo Json?
+  discountInfo   Json?
+  bankName       String?
+  bankAccount    String?
+  clabe          String?
+  directDelivery Boolean @default(false) // "Llega directo"
+  proteinTypeId   String?
+  proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
+  proteinSubTypeId String?
+  proteinSubType   ProteinSubType? @relation(name: "SupplierProteinSubType", fields: [proteinSubTypeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  sku         String?   @unique
+  category    String?   // proteína
+  description String?
+  distributor String?
+  brand       String?
+  purchasePrice Float?  // precio de compra
+  price       Float     // precio de venta
+  unit        String?   // 'kg' | 'pz' (por ahora libre)
+  stock       Int       @default(0) // legado para vistas actuales
+  stockQty    Float?    // soporta kg/piezas decimales
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  proteinTypeId   String?
+  proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
+  proteinSubTypeId String?
+  proteinSubType   ProteinSubType? @relation(fields: [proteinSubTypeId], references: [id])
+  saleItems   SaleItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  whatsapp  String?
+  email     String?
+  businessName    String?
+  personalAddress String?
+  businessAddress String?
+  rfcCurp         String?
+  customerType    CreditTerms @default(contado)
+  creditDays      Int?
+  creditLimit     Float?
+  authorizedPeople Json?
+  isActive        Boolean @default(true)
+  sales      Sale[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  concept     String? // concepto corto
+  description String
+  amount      Float
+  method      PaymentMethod @default(efectivo)
+  isDeductible Boolean @default(false)
+  attachmentUrl String?
+  createdAt   DateTime @default(now())
+}
+
+model Sale {
+  id        String   @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  total     Float
+  paidAmount Float? // abonos
+  paymentMethod PaymentMethod @default(efectivo)
+  notes     String?
+  creditDueDate DateTime?
+  createdAt DateTime @default(now())
+  items     SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Float
+  unitPrice Float
+  discount  Float   @default(0)
+  lineTotal Float
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(MOSTRADOR)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ProteinType {
+  id        String @id @default(cuid())
+  name      String @unique
+  subtypes  ProteinSubType[]
+  products  Product[]
+  suppliers Supplier[]
+}
+
+model ProteinSubType {
+  id        String @id @default(cuid())
+  name      String
+  typeId    String
+  type      ProteinType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  suppliers Supplier[] @relation(name: "SupplierProteinSubType")
+  @@unique([name, typeId])
+}
+
+
+--- [ package.json ] ---
+{
+  "name": "cueramaro-prime-pos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "packageManager": "pnpm@8.15.4",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "scripts": {
+    "dev": "nest start --watch",
+    "dev:all": "concurrently -c blue,green -n API,WEB \"pnpm dev\" \"pnpm --dir frontend dev\"",
+    "frontend": "pnpm --dir frontend dev",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "prisma db seed",
+    "sync": "electric sync",
+    "test": "jest",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "build": "nest build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/passport": "^10.0.2",
+    "@nestjs/platform-express": "^10.0.0",
+    "@prisma/client": "^5.15.0",
+    "@react-pdf/renderer": "^4.3.1",
+    "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.3.2",
+    "@nestjs/schematics": "^10.1.0",
+    "@nestjs/testing": "^10.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.30",
+    "@types/passport-jwt": "^3.0.9",
+    "@types/supertest": "^2.0.16",
+    "concurrently": "^9.0.1",
+    "jest": "^29.7.0",
+    "prisma": "^5.15.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.3"
+  }
+}
+
+
+--- [ docker-compose.yml ] ---
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    container_name: cueramaro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: cueramaro
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  electric:
+    image: electricsql/electric:latest
+    container_name: cueramaro-electric
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://user:pass@db:5432/cueramaro
+    ports:
+      - '5133:5133'
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: cueramaro-api
+    environment:
+      DATABASE_URL: postgresql://user:pass@db:5432/cueramaro
+      ELECTRIC_URL: http://electric:5133
+      JWT_SECRET: supersecret
+      TAURI_BRIDGE_PORT: 5170
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - electric
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: cueramaro-frontend
+    environment:
+      VITE_API_URL: http://api:3000/api
+      VITE_ELECTRIC_URL: http://electric:5133
+    ports:
+      - '5173:5173'
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+
+
+### 2. Estructura de Directorios ###
+
+--- [ Árbol de: prisma/ ] ---
+prisma/
+    schema.prisma
+    catalog_seed.ts
+    seed.ts
+    user_extra_seed.ts
+    history_seed.ts
+    migrations/
+        migration_lock.toml
+        20251029215718_init/
+            migration.sql
+        20251029163000_add_customer_supplier_fields/
+            migration.sql
+
+--- [ Árbol de: src/ ] ---
+src/
+    main.ts
+    app.module.ts
+    suppliers/
+        suppliers.controller.ts
+        suppliers.module.ts
+    invoice/
+        invoice.service.ts
+    expenses/
+        expenses.controller.ts
+        expenses.module.ts
+    auth/
+        auth.module.ts
+        jwt.strategy.ts
+        roles.decorator.ts
+        auth.service.ts
+        roles.guard.ts
+        auth.controller.ts
+    catalogs/
+        catalogs.module.ts
+        catalogs.controller.ts
+    sales/
+        sales.controller.ts
+        sales.module.ts
+    prisma/
+        prisma.service.ts
+        prisma.module.ts
+    customers/
+        customers.controller.ts
+        customers.module.ts
+    settings/
+        settings.controller.ts
+        settings.module.ts
+    products/
+        products.controller.ts
+        products.module.ts
+    reports/
+        reports.controller.ts
+        reports.module.ts
+
+### 3. Archivos de Código Fuente (Lógica y Datos) ###
+
+--- [ prisma/catalog_seed.ts ] ---
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+async function ensureProteinTypes() {
+  const names = ['res', 'cerdo', 'pollo', 'pescado'] as const;
+  const map: Record<string, string> = {};
+  for (const name of names) {
+    const t = await prisma.proteinType.upsert({ where: { name }, update: {}, create: { name } });
+    map[name] = t.id;
+  }
+  return map;
+}
+
+// Catálogo proporcionado por el cliente
+const allItems = [
+  'Paleta C/H', 'Paleta S/H', 'Costilla Suadero', 'Costilla C/H', 'Diezmillo C/H', 'Diezmillo S/H',
+  'Pulpa Bola', 'Pulpa Blanca', 'K-Magra', 'Pulpa Negra', 'Pescuezo C/H', 'Brisket', 'Tuétano',
+  'Chamberete S/H', 'Chamberete C/H', 'Pecho S/H', 'Chuleta', 'Sirloin', 'T-Bone', 'Filete', 'Arrachera',
+  'Rib-Eye', 'Lengua', 'Tomahawk', 'Pierna S/H', 'Chorizo 80/20', 'Pecho', 'Cabeza Lomo', 'Lomo', 'Caña',
+  'Espaldilla S/H', 'Chuleta Ahumada', 'Costilla Baby Back', 'Costilla Corbata', 'Panceta Belly', 'Chamorro C/P', 'Chamorro S/P'
+];
+
+// Clasificación tentativa: res vs cerdo (puede ajustarse luego con el cliente)
+const cerdoItems = new Set([
+  'Chuleta', 'Pierna S/H', 'Chorizo 80/20', 'Cabeza Lomo', 'Lomo', 'Caña', 'Espaldilla S/H', 'Chuleta Ahumada',
+  'Costilla Baby Back', 'Costilla Corbata', 'Panceta Belly', 'Chamorro C/P', 'Chamorro S/P'
+]);
+
+// Algunas dudosas; por ahora asumimos RES y se corrige si aplica
+const assumedRes = new Set(['K-Magra', 'Pescuezo C/H']);
+
+async function upsertSubtype(name: string, typeId: string) {
+  // Usa índice único compuesto (name, typeId)
+  return prisma.proteinSubType.upsert({
+    where: { name_typeId: { name, typeId } },
+    update: {},
+    create: { name, typeId }
+  });
+}
+
+async function upsertProduct(name: string, typeId: string, subTypeId: string) {
+  // Como Product.name no es único, buscamos por nombre y creamos si no existe
+  const existing = await prisma.product.findFirst({ where: { name } });
+  if (existing) {
+    // Sólo garantizamos vínculo de catálogo; no tocamos precios u otros campos
+    return prisma.product.update({ where: { id: existing.id }, data: { proteinTypeId: typeId, proteinSubTypeId: subTypeId } });
+  }
+  return prisma.product.create({
+    data: {
+      name,
+      price: 0,
+      unit: 'kg',
+      stock: 0,
+      proteinTypeId: typeId,
+      proteinSubTypeId: subTypeId
+    }
+  });
+}
+
+async function main() {
+  const types = await ensureProteinTypes();
+  const resId = types['res'];
+  const cerdoId = types['cerdo'];
+
+  let createdSubtypes = 0;
+  let createdProducts = 0;
+  for (const name of allItems) {
+    const typeId = cerdoItems.has(name) ? cerdoId : resId; // por defecto RES si no está en cerdoItems
+    const subtype = await upsertSubtype(name, typeId);
+    createdSubtypes++;
+    const prod = await upsertProduct(name, typeId, subtype.id);
+    if (prod) createdProducts++;
+  }
+
+  console.log(`Tipos OK: res=${resId} cerdo=${cerdoId}`);
+  console.log(`Subtipos procesados: ${createdSubtypes}`);
+  console.log(`Productos procesados: ${createdProducts}`);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
+
+
+--- [ prisma/history_seed.ts ] ---
+import { PrismaClient, PaymentMethod, Role } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+function rand(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function choice<T>(arr: T[]): T { return arr[rand(0, arr.length - 1)]; }
+
+async function ensureCustomers(count = 40) {
+  const names = [
+    'Juan Pérez','María López','Carlos Sánchez','Ana Martínez','Luis Rodríguez','Laura Gómez','José Hernández','Sofía Díaz','Pedro Ramírez','Martha Torres',
+    'Daniel Flores','Elena Ruiz','Héctor Cruz','Patricia Morales','Ricardo Ortiz','Lucía Chávez','Andrés Mendoza','Gabriela Vázquez','Felipe Herrera','Paola Ríos',
+    'Manuel Castillo','Diana Silva','Jorge Romero','Claudia Vega','Raúl Navarro','Silvia Soto','Emilio Salinas','Beatriz Pineda','Hugo Lozano','Rocío Campos',
+    'Gerardo Valdez','Alejandra Cano','Francisco Lara','Monserrat Pardo','Iván Cabrera','Karen Mena','Óscar Aguilar','Itzel Cano','Sergio Meza','Tania Solís'
+  ];
+  const existing = await prisma.customer.count();
+  if (existing >= count) return;
+  const toCreate = names.slice(0, count - existing).map((name, i) => ({ name, phone: `462-555-${String(1000 + i).slice(-4)}` }));
+  if (toCreate.length) await prisma.customer.createMany({ data: toCreate, skipDuplicates: true });
+}
+
+async function ensureSuppliers() {
+  // Mantiene los existentes y agrega algunos más
+  const types = await prisma.proteinType.findMany();
+  const map = new Map(types.map(t => [t.name, t.id] as const));
+  const resId = map.get('res');
+  const cerdoId = map.get('cerdo');
+  const extra = [
+    { name: 'Distribuidora Prime', contact: 'prime@dist.com', phone: '462-123-0001', proteinTypeId: resId },
+    { name: 'Carnes Selectas León', contact: 'ventas@cseleon.mx', phone: '477-987-1200', proteinTypeId: cerdoId },
+  ].filter(s => s.proteinTypeId);
+  for (const s of extra) {
+    const found = await prisma.supplier.findFirst({ where: { name: s.name } });
+    if (!found) await prisma.supplier.create({ data: s as any });
+  }
+}
+
+function unitPriceFor(typeName?: string) {
+  if (typeName === 'res') return rand(120, 280);
+  if (typeName === 'cerdo') return rand(90, 180);
+  if (typeName === 'pollo') return rand(70, 130);
+  return rand(80, 150);
+}
+
+async function generateSales(days = 120) {
+  const products = await prisma.product.findMany({ include: { proteinType: true }, take: 200 });
+  if (products.length === 0) {
+    console.warn('No hay productos para generar ventas. Ejecuta catalog_seed primero.');
+    return;
+  }
+  const customers = await prisma.customer.findMany({ take: 100 });
+
+  const methods: PaymentMethod[] = [
+    PaymentMethod.efectivo,
+    PaymentMethod.transferencia,
+    PaymentMethod.tarjeta,
+    PaymentMethod.otro,
+  ];
+
+  const now = new Date();
+  for (let d = days; d >= 1; d--) {
+    const date = new Date(now.getTime() - d * 24 * 3600_000);
+    const dow = date.getDay(); // 0 dom - 6 sab
+    const salesToday = dow === 0 ? rand(4, 9) : dow >= 5 ? rand(10, 18) : rand(7, 14);
+
+    for (let s = 0; s < salesToday; s++) {
+      const hour = rand(9, 19);
+      const minute = rand(0, 59);
+      const createdAt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, minute, rand(0, 59));
+      const cust = customers.length ? choice(customers) : undefined;
+      const itemsCount = rand(1, 4);
+      const chosen: typeof products = [];
+      for (let i = 0; i < itemsCount; i++) chosen.push(choice(products));
+
+      let total = 0;
+      const itemPayload = chosen.map(p => {
+        const qty = Math.round((Math.random() * 2.5 + 0.5) * 100) / 100; // 0.5 - 3.0
+        const unitPrice = unitPriceFor(p.proteinType?.name);
+        const lineTotal = Math.round((unitPrice * qty) * 100) / 100;
+        total += lineTotal;
+        return { productId: p.id, quantity: qty, unitPrice, discount: 0, lineTotal };
+      });
+
+      await prisma.$transaction(async (tx) => {
+        const sale = await tx.sale.create({
+          data: {
+            customerId: cust?.id,
+            total: Math.round(total * 100) / 100,
+            paidAmount: Math.random() < 0.9 ? Math.round(total * 100) / 100 : null,
+            paymentMethod: choice(methods),
+            notes: null,
+            createdAt,
+          }
+        });
+        await tx.saleItem.createMany({ data: itemPayload.map(i => ({ ...i, saleId: sale.id })) });
+      });
+    }
+  }
+}
+
+async function main() {
+  await ensureCustomers(40);
+  await ensureSuppliers();
+  await generateSales(120); // ~4 meses
+}
+
+main()
+  .catch((e) => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });
+
+
+
+--- [ prisma/user_extra_seed.ts ] ---
+import { PrismaClient, Role } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
+
+async function upsertUser(name: string, email: string, password: string, role: Role) {
+  const hash = await bcrypt.hash(password, 10);
+  return prisma.user.upsert({
+    where: { email },
+    update: { name, passwordHash: hash, role, isActive: true },
+    create: { name, email, passwordHash: hash, role, isActive: true }
+  });
+}
+
+async function main() {
+  // Mantiene los de prueba y añade usuarios adicionales solicitados
+  await upsertUser('Dueño 2', 'admin2@pos.local', 'admin123', Role.ADMIN);
+  await upsertUser('Cajero 1', 'caja1@pos.local', 'caja123', Role.MOSTRADOR);
+  await upsertUser('Cajero 2', 'caja2@pos.local', 'caja123', Role.MOSTRADOR);
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+
+
+
+--- [ src/app.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ReportsModule } from './reports/reports.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { ProductsModule } from './products/products.module';
+import { CustomersModule } from './customers/customers.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { ExpensesModule } from './expenses/expenses.module';
+import { SettingsModule } from './settings/settings.module';
+import { AuthModule } from './auth/auth.module';
+import { SalesModule } from './sales/sales.module';
+import { CatalogsModule } from './catalogs/catalogs.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    ProductsModule,
+    CustomersModule,
+    SuppliersModule,
+    ExpensesModule,
+    ReportsModule,
+    SettingsModule,
+    AuthModule,
+    SalesModule,
+    CatalogsModule
+  ]
+})
+export class AppModule {}
+
+
+--- [ src/auth/auth.controller.ts ] ---
+import { Body, Controller, Post } from '@nestjs/common';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+import { AuthService } from './auth.service';
+
+class LoginDto {
+  @IsEmail()
+  email!: string;
+  @IsString()
+  @MinLength(3)
+  password!: string;
+}
+
+@Controller('auth')
+export class AuthController {
+  constructor(private auth: AuthService) {}
+
+  @Post('login')
+  async login(@Body() body: LoginDto) {
+    return this.auth.login(body.email, body.password);
+  }
+}
+
+
+
+--- [ src/auth/auth.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtStrategy } from './jwt.strategy';
+
+@Module({
+  imports: [
+    PrismaModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'dev-secret',
+      signOptions: { expiresIn: '2d' }
+    })
+  ],
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController]
+})
+export class AuthModule {}
+
+
+
+--- [ src/auth/auth.service.ts ] ---
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class AuthService {
+  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+
+  async validateUser(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user || !user.isActive) return null;
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash, ...safe } = user;
+    return safe;
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.validateUser(email, password);
+    if (!user) throw new UnauthorizedException('Credenciales inválidas');
+    const payload = { sub: user.id, role: user.role, email: user.email, name: user.name };
+    const token = await this.jwt.signAsync(payload);
+    return { access_token: token, user };
+  }
+}
+
+
+--- [ src/catalogs/catalogs.controller.ts ] ---
+import { Controller, Get } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Controller('catalogs')
+export class CatalogsController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get('protein-types')
+  async proteinTypes() {
+    try {
+      const types = await this.prisma.proteinType.findMany({
+        orderBy: { name: 'asc' },
+        include: { subtypes: { orderBy: { name: 'asc' } } }
+      });
+      if (Array.isArray(types) && types.length > 0) return types;
+    } catch (_) {
+      // Fallback si el modelo aún no existe o la DB no está migrada
+    }
+    const fallback = [
+      { id: 'res', name: 'res', subtypes: [{ id: 'res-general', name: 'general', typeId: 'res' }] },
+      { id: 'cerdo', name: 'cerdo', subtypes: [{ id: 'cerdo-general', name: 'general', typeId: 'cerdo' }] },
+      { id: 'pollo', name: 'pollo', subtypes: [{ id: 'pollo-general', name: 'general', typeId: 'pollo' }] },
+      { id: 'pescado', name: 'pescado', subtypes: [{ id: 'pescado-general', name: 'general', typeId: 'pescado' }] }
+    ];
+    return fallback;
+  }
+}
+
+
+--- [ src/catalogs/catalogs.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { CatalogsController } from './catalogs.controller';
+
+@Module({ imports: [PrismaModule], controllers: [CatalogsController] })
+export class CatalogsModule {}
+
+
+
+--- [ src/customers/customers.controller.ts ] ---
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, Length, Min } from 'class-validator';
+import { CreditTerms } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+class CreateCustomerDto {
+  @IsString()
+  @Length(2, 100)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  businessName?: string;
+
+  @IsOptional()
+  @IsString()
+  personalAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  businessAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  rfcCurp?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsapp?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsEnum(CreditTerms)
+  customerType?: CreditTerms = CreditTerms.contado;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  creditDays?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  creditLimit?: number;
+
+  @IsOptional()
+  authorizedPeople?: any; // JSON con personas autorizadas
+}
+
+@Controller('customers')
+export class CustomersController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get()
+  async list() {
+    return this.prisma.customer.findMany({ orderBy: { name: 'asc' } });
+  }
+
+
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async create(@Body() body: CreateCustomerDto) {
+    return this.prisma.customer.create({ data: body as any });
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async update(@Param('id') id: string, @Body() body: Partial<CreateCustomerDto>) {
+    return this.prisma.customer.update({ where: { id }, data: body as any });
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async remove(@Param('id') id: string) {
+    await this.prisma.customer.delete({ where: { id } });
+    return { ok: true };
+  }
+}
+
+
+--- [ src/customers/customers.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { CustomersController } from './customers.controller';
+
+@Module({
+  controllers: [CustomersController]
+})
+export class CustomersModule {}
+
+
+
+--- [ src/expenses/expenses.controller.ts ] ---
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+type PaymentMethodType = 'efectivo' | 'transferencia' | 'credito' | 'tarjeta' | 'otro';
+
+class CreateExpenseDto {
+  @IsOptional()
+  @IsString()
+  concept?: string;
+
+  @IsString()
+  description!: string;
+
+  @IsNumber()
+  @Min(0)
+  amount!: number;
+
+  @IsIn(['efectivo', 'transferencia', 'credito', 'tarjeta', 'otro'])
+  method!: PaymentMethodType;
+
+  @IsOptional()
+  @IsBoolean()
+  isDeductible?: boolean;
+
+  @IsOptional()
+  @IsString()
+  attachmentUrl?: string;
+}
+
+@Controller('expenses')
+export class ExpensesController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async list() {
+    return this.prisma.expense.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'MOSTRADOR')
+  async create(@Body() body: CreateExpenseDto) {
+    return this.prisma.expense.create({ data: body as any });
+  }
+}
+
+
+--- [ src/expenses/expenses.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { ExpensesController } from './expenses.controller';
+
+@Module({
+  controllers: [ExpensesController]
+})
+export class ExpensesModule {}
+
+
+
+--- [ src/invoice/invoice.service.ts ] ---
+import { Injectable, Logger } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
+import type { Prisma } from '@prisma/client';
+
+// Lazy require to avoid hard dependency when not installed yet
+let XLSX: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  XLSX = require('xlsx');
+} catch (_) {
+  // Module will be required after installation
+}
+
+type SaleWithDetails = Prisma.SaleGetPayload<{
+  include: {
+    items: { include: { product: true } };
+    customer: true;
+  };
+}>;
+
+@Injectable()
+export class InvoiceService {
+  private readonly logger = new Logger(InvoiceService.name);
+
+  async generateFromTemplate(sale: SaleWithDetails, vendorName?: string): Promise<string | null> {
+    try {
+      if (!XLSX) {
+        this.logger.warn('xlsx no instalado; omitiendo generación de Factura.xlsm');
+        return null;
+      }
+
+      const templatePath = path.resolve(process.cwd(), 'Factura.xlsm');
+      if (!fs.existsSync(templatePath)) {
+        this.logger.warn(`No se encontró plantilla: ${templatePath}`);
+        return null;
+      }
+
+      const outDir = path.resolve(process.cwd(), 'facturas');
+      if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+      const wb = XLSX.readFile(templatePath, { cellDates: true });
+      const sheetName = 'Formato';
+      const ws = wb.Sheets[sheetName];
+      if (!ws) {
+        this.logger.warn('Hoja "Formato" no encontrada en Factura.xlsm');
+        return null;
+      }
+
+      // Helpers
+      const set = (addr: string, v: any, t: 's' | 'n' = (typeof v === 'number' ? 'n' : 's')) => {
+        ws[addr] = { v, t };
+      };
+      const formatDateEs = (d: Date) => new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }).format(d);
+
+      const expedidaEn = process.env.INVOICE_EXPEDIDA_EN || 'Cuerámaro, Guanajuato';
+      const isCredito = sale.paymentMethod === 'credito';
+
+      // Encabezado dinámico básico
+      // E5: Expedida en
+      set('E5', expedidaEn, 's');
+      // E7: Fecha de vencimiento (solo crédito)
+      if (isCredito && sale.creditDueDate) set('E7', formatDateEs(new Date(sale.creditDueDate)), 's');
+
+      // Datos del cliente
+      const customerName = sale.customer?.name ?? 'Mostrador';
+      const address = sale.customer?.businessAddress || sale.customer?.personalAddress || '';
+      const rfc = sale.customer?.rfcCurp || '';
+      const phone = sale.customer?.phone || '';
+      set('B10', customerName, 's');
+      if (address) set('B11', address, 's');
+      if (rfc) set('B13', rfc, 's');
+      if (phone) set('B14', phone, 's');
+
+      // Método de pago y plazo
+      const methodMap: Record<string, string> = {
+        efectivo: 'Pago de contado',
+        transferencia: 'Pago por transferencia',
+        credito: 'Crédito',
+        tarjeta: 'Pago con tarjeta',
+        otro: 'Otro método'
+      };
+      set('E9', methodMap[sale.paymentMethod] || 'Pago de contado', 's');
+      if (isCredito) {
+        const plazo = sale.customer?.creditDays ?? 0;
+        set('E11', `${plazo || 0} días`, 's');
+      } else {
+        set('E11', 'Contado', 's');
+      }
+      // Moneda
+      set('E13', 'M.N. MXN', 's');
+      // Vendedor
+      if (vendorName) set('E15', vendorName, 's');
+
+      // Partidas
+      const startRow = 18; // A18..F18
+      sale.items.forEach((it, idx) => {
+        const row = startRow + idx;
+        set(`A${row}`, Number(it.quantity) || 0, 'n');
+        set(`B${row}`, it.product?.sku || it.productId, 's');
+        set(`C${row}`, it.product?.unit || '', 's');
+        set(`D${row}`, it.product?.name || '', 's');
+        set(`E${row}`, Number(it.unitPrice) || 0, 'n');
+        set(`F${row}`, Number(it.lineTotal) || 0, 'n');
+      });
+      // Limpia filas restantes hasta 27
+      for (let r = startRow + sale.items.length; r <= 27; r++) {
+        ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => delete ws[`${col}${r}`]);
+      }
+
+      // Totales
+      const subtotal = sale.items.reduce((acc, i) => acc + (Number(i.lineTotal) || 0), 0);
+      set('F28', subtotal, 'n'); // SUBTOTAL
+      // IVA (no desglosado por ahora)
+      set('F30', sale.total, 'n'); // TOTAL
+      set('F32', sale.total, 'n'); // BUENO POR
+
+      // Pagaré (solo crédito)
+      if (isCredito) {
+        const today = sale.createdAt ? new Date(sale.createdAt) : new Date();
+        const fechaLarga = formatDateEs(today).replace(' de ', ' de ');
+        set('B33', `En ${expedidaEn} ${fechaLarga}`, 's');
+        set('A35', `en ${expedidaEn} el ${formatDateEs(sale.creditDueDate ? new Date(sale.creditDueDate) : today)}`, 's');
+        set('A36', `La Cantidad  de: ${this.formatCurrency(sale.total)}`, 's');
+        set('B43', customerName, 's');
+        if (address) set('B44', address, 's');
+        // Ciudad si se puede inferir, si no, usa expedidaEn
+        set('B45', expedidaEn, 's');
+      }
+
+      const outName = `Factura-${(sale.id || '').slice(0, 8)}.xlsm`;
+      const outPath = path.join(outDir, outName);
+      XLSX.writeFile(wb, outPath, { bookVBA: true });
+      this.logger.log(`Factura generada: ${outPath}`);
+      return outPath;
+    } catch (err) {
+      this.logger.error('Error generando Factura.xlsm', err as any);
+      return null;
+    }
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(value || 0);
+  }
+}
+
+
+
+--- [ src/prisma/prisma.module.ts ] ---
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Global()
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService]
+})
+export class PrismaModule {}
+
+
+
+--- [ src/prisma/prisma.service.ts ] ---
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  async onModuleInit() {
+    await this.$connect();
+  }
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
+
+
+
+--- [ src/products/products.controller.ts ] ---
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+class CreateProductDto {
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @IsNumber()
+  @Min(0)
+  price!: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  purchasePrice?: number;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  distributor?: string;
+
+  @IsOptional()
+  @IsString()
+  brand?: string;
+
+  @IsOptional()
+  @IsString()
+  unit?: string; // kg|pz
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stock?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stockQty?: number;
+
+  @IsOptional()
+  @IsString()
+  supplierId?: string;
+}
+
+@Controller('products')
+export class ProductsController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get()
+  async list() {
+    const items = await this.prisma.product.findMany({
+      include: { supplier: { select: { id: true, name: true } }, proteinType: true, proteinSubType: true },
+      orderBy: { name: 'asc' }
+    });
+    return items;
+  }
+
+
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async create(@Body() body: CreateProductDto) {
+    return this.prisma.product.create({ data: body as any });
+  }
+
+  @Patch(':id/price')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async updatePrice(@Param('id') id: string, @Body() body: { price?: number }) {
+    if (typeof body?.price !== 'number' || !isFinite(body.price) || body.price < 0) {
+      throw new BadRequestException('Precio inválido');
+    }
+    const updated = await this.prisma.product.update({
+      where: { id },
+      data: { price: body.price }
+    });
+    return updated;
+  }
+
+  @Patch(':id/stock')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'MOSTRADOR')
+  async adjustStock(
+    @Param('id') id: string,
+    @Body() body: { quantity?: number }
+  ) {
+    const qty = Number(body?.quantity);
+    if (!isFinite(qty)) throw new BadRequestException('Cantidad inválida');
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new BadRequestException('Producto no encontrado');
+    if (product.stockQty != null) {
+      const newQty = Math.max(0, (product.stockQty || 0) + qty);
+      return this.prisma.product.update({ where: { id }, data: { stockQty: newQty } });
+    } else {
+      const newStock = Math.max(0, product.stock + Math.round(qty));
+      return this.prisma.product.update({ where: { id }, data: { stock: newStock } });
+    }
+  }
+}
+
+
+--- [ src/products/products.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { ProductsController } from './products.controller';
+
+@Module({
+  controllers: [ProductsController]
+})
+export class ProductsModule {}
+
+
+
+--- [ src/reports/reports.controller.ts ] ---
+import { Controller, Get, Query } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+type DashboardResponse = {
+  totals: {
+    sales: number; // ventas del día o rango
+    expenses: number;
+    margin: number; // demo: margen simple derivado
+    products: number;
+    customers: number;
+    accountsReceivable: number; // cuentas por cobrar global
+  };
+  recentSales: Array<{ id: string; total: number; createdAt: string }>;
+};
+
+@Controller('reports')
+export class ReportsController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get('dashboard')
+  async getDashboard(
+    @Query('from') from?: string,
+    @Query('to') to?: string
+  ): Promise<DashboardResponse> {
+    // Si no se especifica rango, usar el día de hoy
+    const defaultFrom = new Date();
+    defaultFrom.setHours(0, 0, 0, 0);
+    const defaultTo = new Date();
+
+    const rangeFilter = (() => {
+      const range: any = {};
+      const start = from ? new Date(from) : defaultFrom;
+      const end = to ? new Date(to) : defaultTo;
+      range.gte = start;
+      range.lte = end;
+      return { createdAt: range } as const;
+    })();
+
+    const [sales, expenses, products, customers, receivableSales] = await Promise.all([
+      this.prisma.sale.findMany({
+        where: rangeFilter,
+        orderBy: { createdAt: 'desc' },
+        take: 50
+      }),
+      this.prisma.expense.findMany({ where: rangeFilter }),
+      this.prisma.product.count(),
+      this.prisma.customer.count(),
+      // ventas con saldo pendiente para cuentas por cobrar (globales)
+      this.prisma.sale.findMany({ select: { total: true, paidAmount: true, paymentMethod: true } })
+    ]);
+
+    const recentSales = sales.map((s) => ({ id: s.id, total: s.total, createdAt: s.createdAt.toISOString() }));
+    const salesTotal = sales.reduce((acc, s) => acc + s.total, 0);
+    const expensesTotal = expenses.reduce((acc, e) => acc + e.amount, 0);
+    const margin = salesTotal > 0 ? Math.max(0, (salesTotal - expensesTotal) / salesTotal) : 0;
+    const accountsReceivable = receivableSales
+      .filter((s) => (s as any).paymentMethod === 'credito' || (s.paidAmount ?? 0) < (s.total ?? 0))
+      .reduce((acc, s) => acc + Math.max(0, (s.total || 0) - (s.paidAmount || 0)), 0);
+
+    return {
+      totals: {
+        sales: salesTotal,
+        expenses: expensesTotal,
+        margin,
+        products,
+        customers,
+        accountsReceivable
+      },
+      recentSales
+    };
+  }
+}
+
+
+--- [ src/reports/reports.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { ReportsController } from './reports.controller';
+
+@Module({
+  controllers: [ReportsController]
+})
+export class ReportsModule {}
+
+
+
+--- [ src/sales/sales.controller.ts ] ---
+import { BadRequestException, Body, Controller, Get, Post, UseGuards, Req } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { IsArray, IsDateString, IsIn, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+type PaymentMethod = 'efectivo' | 'transferencia' | 'credito' | 'tarjeta' | 'otro';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { InvoiceService } from '../invoice/invoice.service';
+import { Request } from 'express';
+
+class SaleItemDto {
+  @IsString()
+  productId!: string;
+
+  @IsNumber()
+  @Min(0.0001)
+  quantity!: number;
+
+  @IsNumber()
+  @Min(0)
+  unitPrice!: number;
+
+  @IsNumber()
+  @Min(0)
+  discount?: number = 0;
+}
+
+class CreateSaleDto {
+  @IsOptional()
+  @IsString()
+  customerId?: string;
+
+  @IsIn(['efectivo', 'transferencia', 'credito', 'tarjeta', 'otro'])
+  paymentMethod!: PaymentMethod;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsDateString()
+  creditDueDate?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SaleItemDto)
+  items!: SaleItemDto[];
+}
+
+@Controller('sales')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+export class SalesController {
+  constructor(private prisma: PrismaService, private invoice: InvoiceService) {}
+
+  @Get()
+  @Roles('ADMIN', 'MOSTRADOR')
+  async list() {
+    return this.prisma.sale.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { items: true, customer: { select: { id: true, name: true } } }
+    });
+  }
+
+  @Post()
+  @Roles('ADMIN', 'MOSTRADOR')
+  async create(@Body() body: CreateSaleDto, @Req() req: Request) {
+    if (!body.items?.length) throw new BadRequestException('Agrega al menos un producto');
+
+    // Verificar productos
+    const productIds = body.items.map((i) => i.productId);
+    const products = await this.prisma.product.findMany({ where: { id: { in: productIds } } });
+    const map = new Map(products.map((p) => [p.id, p] as const));
+    if (products.length !== productIds.length) throw new BadRequestException('Producto inexistente');
+
+    const itemsWithTotal = body.items.map((i) => {
+      const p = map.get(i.productId)!;
+      const discount = i.discount ?? 0;
+      const lineTotal = Math.max(0, i.unitPrice * i.quantity - discount);
+      return { ...i, discount, lineTotal };
+    });
+    const total = itemsWithTotal.reduce((acc, i) => acc + i.lineTotal, 0);
+
+    // Crear venta y partidas
+    const sale = await this.prisma.sale.create({
+      data: {
+        customerId: body.customerId,
+        total,
+        paidAmount: body.paymentMethod === 'credito' ? 0 : total,
+        paymentMethod: body.paymentMethod,
+        notes: body.notes,
+        creditDueDate: body.paymentMethod === 'credito' ? (body.creditDueDate ? new Date(body.creditDueDate) : null) : null,
+        items: {
+          create: itemsWithTotal.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+            discount: i.discount ?? 0,
+            lineTotal: i.lineTotal
+          }))
+        }
+      },
+      include: { items: { include: { product: true } }, customer: true }
+    });
+
+    // Actualizar inventario básico
+    await Promise.all(
+      itemsWithTotal.map(async (i) => {
+        const p = map.get(i.productId)! as any;
+        if (typeof p.stockQty === 'number') {
+          const newQty = Math.max(0, (p.stockQty || 0) - i.quantity);
+          await this.prisma.product.update({ where: { id: p.id }, data: { stockQty: newQty } });
+        } else {
+          // fallback a stock entero
+          const newStock = Math.max(0, p.stock - Math.round(i.quantity));
+          await this.prisma.product.update({ where: { id: p.id }, data: { stock: newStock } });
+        }
+      })
+    );
+
+    // Intentar generar Factura.xlsm con plantilla
+    let invoiceUrl: string | null = null;
+    try {
+      const user: any = (req as any).user;
+      const vendorName = user?.name || undefined;
+      const outPath = await this.invoice.generateFromTemplate(sale as any, vendorName);
+      if (outPath) {
+        const file = outPath.split(/[/\\]/).pop()!;
+        invoiceUrl = `/facturas/${file}`;
+      }
+    } catch {}
+
+    return { ...sale, invoiceUrl } as any;
+  }
+}
+
+
+--- [ src/sales/sales.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { SalesController } from './sales.controller';
+import { InvoiceService } from '../invoice/invoice.service';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [SalesController],
+  providers: [InvoiceService]
+})
+export class SalesModule {}
+
+
+--- [ src/settings/settings.controller.ts ] ---
+import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Controller('settings')
+export class SettingsController {
+  constructor(private config: ConfigService, private prisma: PrismaService) {}
+
+  @Get()
+  async getSettings() {
+    const [products, customers, suppliers, expenses] = await Promise.all([
+      this.prisma.product.count(),
+      this.prisma.customer.count(),
+      this.prisma.supplier.count(),
+      this.prisma.expense.count()
+    ]);
+    return {
+      api: {
+        port: Number(process.env.PORT || this.config.get('PORT') || 3000)
+      },
+      cors: this.config.get('CORS_ORIGIN') || null,
+      database: {
+        url: (this.config.get('DATABASE_URL') || '').replace(/:\/\/[\w-]+:(.*?)@/, '://user:***@'),
+        summary: { products, customers, suppliers, expenses }
+      }
+    };
+  }
+}
+
+
+
+--- [ src/settings/settings.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { SettingsController } from './settings.controller';
+
+@Module({
+  controllers: [SettingsController]
+})
+export class SettingsModule {}
+
+
+
+--- [ src/suppliers/suppliers.controller.ts ] ---
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { IsBoolean, IsEmail, IsEnum, IsInt, IsOptional, IsString, IsUrl, Length, Min } from 'class-validator';
+import { CreditTerms } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+class CreateSupplierDto {
+  @IsString()
+  @Length(2, 100)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  contact?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsapp?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  company?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  postalCode?: string;
+
+  @IsOptional()
+  @IsUrl()
+  website?: string;
+
+  @IsOptional()
+  @IsString()
+  rfcCurp?: string; // compatibilidad
+
+  @IsOptional()
+  @IsString()
+  rfc?: string;
+
+  @IsOptional()
+  @IsString()
+  curp?: string;
+
+  @IsOptional()
+  @IsEnum(CreditTerms)
+  creditTerms?: CreditTerms = CreditTerms.contado;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  creditDays?: number;
+
+  @IsOptional()
+  @IsString()
+  bankName?: string;
+
+  @IsOptional()
+  @IsString()
+  bankAccount?: string;
+
+  @IsOptional()
+  @IsString()
+  clabe?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  directDelivery?: boolean;
+
+  @IsOptional()
+  commercialInfo?: any;
+
+  @IsOptional()
+  discountInfo?: any;
+
+  @IsOptional()
+  @IsString()
+  proteinTypeId?: string;
+
+  @IsOptional()
+  @IsString()
+  proteinSubTypeId?: string;
+
+  @IsOptional()
+  @IsString()
+  proteinType?: string;
+
+  @IsOptional()
+  @IsString()
+  proteinSubType?: string;
+}
+
+@Controller('suppliers')
+export class SuppliersController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get()
+  async list() {
+    return this.prisma.supplier.findMany({ orderBy: { name: 'asc' }, include: { proteinType: true, proteinSubType: true } });
+  }
+
+
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async create(@Body() body: CreateSupplierDto) {
+    const { proteinTypeId, proteinSubTypeId, ...rest } = body as any;
+    try {
+      return await (this.prisma as any).supplier.create({ data: { ...rest, proteinTypeId, proteinSubTypeId } });
+    } catch (e) {
+      // Fallback: guarda nombres en commercialInfo si catálogo relacional no existe todavía
+      const data = { ...rest } as any;
+      data.commercialInfo = {
+        ...(rest.commercialInfo || {}),
+        proteinTypeId: proteinTypeId || null,
+        proteinSubTypeId: proteinSubTypeId || null
+      };
+      return this.prisma.supplier.create({ data });
+    }
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async update(@Param('id') id: string, @Body() body: Partial<CreateSupplierDto>) {
+    const { proteinTypeId, proteinSubTypeId, ...rest } = body as any;
+    try {
+      return await (this.prisma as any).supplier.update({ where: { id }, data: { ...rest, proteinTypeId, proteinSubTypeId } });
+    } catch (e) {
+      const data = { ...rest } as any;
+      if (proteinTypeId || proteinSubTypeId) {
+        data.commercialInfo = {
+          ...(rest as any)?.commercialInfo,
+          proteinTypeId: proteinTypeId || null,
+          proteinSubTypeId: proteinSubTypeId || null
+        };
+      }
+      return this.prisma.supplier.update({ where: { id }, data });
+    }
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async remove(@Param('id') id: string) {
+    await this.prisma.supplier.delete({ where: { id } });
+    return { ok: true };
+  }
+}
+
+
+--- [ src/suppliers/suppliers.module.ts ] ---
+import { Module } from '@nestjs/common';
+import { SuppliersController } from './suppliers.controller';
+
+@Module({
+  controllers: [SuppliersController]
+})
+export class SuppliersModule {}
+
+
+

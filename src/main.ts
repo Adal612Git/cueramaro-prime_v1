@@ -23,13 +23,13 @@ async function bootstrap() {
     credentials: true
   });
 
-  await app.listen(port);
-  // servir archivos de uploads de forma estática
+  // servir archivos estáticos ANTES de iniciar el servidor
   const uploadsDir = path.join(process.cwd(), 'uploads');
   app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
-  // servir facturas generadas (xlsm/pdf) de forma estática
   const facturasDir = path.join(process.cwd(), 'facturas');
   app.useStaticAssets(facturasDir, { prefix: '/facturas' });
+
+  await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`API listening on http://localhost:${port}/api`);
 }

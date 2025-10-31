@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema PoS Cueramaro Prime - Diagramas</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --info: #4895ef;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+        }
+        
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: none;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        
+        .entity-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .relationship-card {
+            border-left: 4px solid var(--success);
+        }
+        
+        .flow-card {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .diagram-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .entity-box {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .relationship-line {
+            position: relative;
+            height: 2px;
+            background: var(--success);
+            margin: 1.5rem 0;
+        }
+        
+        .relationship-line:before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            top: -4px;
+            left: 0;
+        }
+        
+        .relationship-line:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 8px solid var(--success);
+            top: -4px;
+            right: 0;
+        }
+        
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flow-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .flow-content {
+            flex: 1;
+        }
+        
+        .architecture-box {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .architecture-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        
+        .architecture-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        h2, h3, h4 {
+            color: var(--primary);
+        }
+        
+        .badge-custom {
+            background-color: var(--primary);
+        }
+        
+        .entity-field {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+        
+        .entity-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .nav-pills .nav-link.active {
+            background-color: var(--primary);
+        }
+        
+        .nav-pills .nav-link {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cube me-2"></i>Cueramaro Prime PoS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#architecture">Arquitectura</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#database">Base de Datos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#workflows">Flujos de Trabajo</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold">Sistema PoS Cueramaro Prime</h1>
+                    <p class="lead">Sistema de Punto de Venta para Carnicería con Arquitectura Moderna</p>
+                    <p>Backend NestJS + PostgreSQL + Prisma ORM + ElectricSQL</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fas fa-cash-register display-1"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Architecture Section -->
+        <section id="architecture" class="mb-5">
+            <h2 class="mb-4">Arquitectura del Sistema</h2>
+            <div class="diagram-container">
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <div class="architecture-box">
+                            <div class="architecture-icon">
+                                <i class="fab fa-react"></i>
+                            </div>
+                            <h5>Frontend</h5>
+                            <p>Aplicación moderna (React/Vue) que consume la API</p>
+                            <span class="badge bg-primary">VITE_API_URL</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="architecture-box">
+                            <div class="architecture-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <h5>Backend API</h5>
+                            <p>NestJS con TypeScript, expone API REST</p>
+                            <span class="badge bg-success">JWT Auth</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="architecture-box">
+                            <div class="architecture-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h5>Base de Datos</h5>
+                            <p>PostgreSQL 15 con Prisma ORM</p>
+                            <span class="badge bg-info">ElectricSQL</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="architecture-box">
+                            <div class="architecture-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <h5>Sincronización</h5>
+                            <p>ElectricSQL para funcionalidad offline</p>
+                            <span class="badge bg-warning">Tiempo Real</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <div class="relationship-line"></div>
+                    <p class="text-muted">Comunicación entre componentes</p>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card entity-card">
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-layer-group me-2"></i>Stack Tecnológico
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="fab fa-node-js text-success me-2"></i>
+                                        <strong>Backend:</strong> NestJS (TypeScript)
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-database text-info me-2"></i>
+                                        <strong>Base de Datos:</strong> PostgreSQL 15
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-project-diagram text-warning me-2"></i>
+                                        <strong>ORM:</strong> Prisma
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-bolt text-danger me-2"></i>
+                                        <strong>Sincronización:</strong> ElectricSQL
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-lock text-dark me-2"></i>
+                                        <strong>Autenticación:</strong> JWT + Passport
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card entity-card">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-cogs me-2"></i>Características Principales
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="fas fa-shopping-cart me-2"></i>
+                                        Gestión completa de ventas
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-boxes me-2"></i>
+                                        Control de inventario en tiempo real
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-users me-2"></i>
+                                        Gestión de clientes y proveedores
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-file-excel me-2"></i>
+                                        Generación de facturas en Excel
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-chart-line me-2"></i>
+                                        Dashboard de reportes y KPIs
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Database Section -->
+        <section id="database" class="mb-5">
+            <h2 class="mb-4">Modelo de Base de Datos</h2>
+            
+            <!-- Navigation for DB Diagrams -->
+            <ul class="nav nav-pills mb-4" id="dbTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="entities-tab" data-bs-toggle="pill" data-bs-target="#entities" type="button" role="tab">
+                        <i class="fas fa-table me-1"></i> Entidades Principales
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="relationships-tab" data-bs-toggle="pill" data-bs-target="#relationships" type="button" role="tab">
+                        <i class="fas fa-project-diagram me-1"></i> Relaciones
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="catalog-tab" data-bs-toggle="pill" data-bs-target="#catalog" type="button" role="tab">
+                        <i class="fas fa-box me-1"></i> Catálogo de Productos
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="dbTabsContent">
+                <!-- Entities Tab -->
+                <div class="tab-pane fade show active" id="entities" role="tabpanel">
+                    <div class="diagram-container">
+                        <h4 class="mb-4">Entidades Principales del Sistema</h4>
+                        
+                        <div class="row">
+                            <!-- Product Catalog Entities -->
+                            <div class="col-md-4 mb-4">
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-tag me-2"></i>ProteinType
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">name: String @unique</div>
+                                    <div class="entity-field">createdAt: DateTime @default(now())</div>
+                                    <div class="entity-field">updatedAt: DateTime @updatedAt</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-info">Catálogo</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-tags me-2"></i>ProteinSubType
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">name: String</div>
+                                    <div class="entity-field">proteinTypeId: Int</div>
+                                    <div class="entity-field">createdAt: DateTime @default(now())</div>
+                                    <div class="entity-field">updatedAt: DateTime @updatedAt</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-info">Catálogo</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-box me-2"></i>Product
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">name: String</div>
+                                    <div class="entity-field">price: Decimal</div>
+                                    <div class="entity-field">stockQty: Decimal</div>
+                                    <div class="entity-field">proteinTypeId: Int</div>
+                                    <div class="entity-field">proteinSubTypeId: Int</div>
+                                    <div class="entity-field">supplierId: Int?</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-info">Catálogo</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Business Entities -->
+                            <div class="col-md-4 mb-4">
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-user me-2"></i>User
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">email: String @unique</div>
+                                    <div class="entity-field">password: String</div>
+                                    <div class="entity-field">name: String</div>
+                                    <div class="entity-field">role: Role</div>
+                                    <div class="entity-field">isActive: Boolean @default(true)</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">Negocio</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-truck me-2"></i>Supplier
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">name: String</div>
+                                    <div class="entity-field">contact: String?</div>
+                                    <div class="entity-field">phone: String?</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">Negocio</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-users me-2"></i>Customer
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">name: String</div>
+                                    <div class="entity-field">phone: String?</div>
+                                    <div class="entity-field">type: CustomerType</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">Negocio</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Transaction Entities -->
+                            <div class="col-md-4 mb-4">
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-receipt me-2"></i>Sale
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">total: Decimal</div>
+                                    <div class="entity-field">paymentMethod: PaymentMethod</div>
+                                    <div class="entity-field">customerId: Int?</div>
+                                    <div class="entity-field">userId: Int</div>
+                                    <div class="entity-field">createdAt: DateTime @default(now())</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">Transacción</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-list me-2"></i>SaleItem
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">saleId: Int</div>
+                                    <div class="entity-field">productId: Int</div>
+                                    <div class="entity-field">quantity: Decimal</div>
+                                    <div class="entity-field">unitPrice: Decimal</div>
+                                    <div class="entity-field">lineTotal: Decimal</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">Transacción</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="entity-box">
+                                    <div class="entity-name">
+                                        <i class="fas fa-money-bill-wave me-2"></i>Expense
+                                    </div>
+                                    <div class="entity-field">id: Int @id @default(autoincrement())</div>
+                                    <div class="entity-field">description: String</div>
+                                    <div class="entity-field">amount: Decimal</div>
+                                    <div class="entity-field">createdAt: DateTime @default(now())</div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-warning">Finanzas</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Relationships Tab -->
+                <div class="tab-pane fade" id="relationships" role="tabpanel">
+                    <div class="diagram-container">
+                        <h4 class="mb-4">Relaciones entre Entidades</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card relationship-card">
+                                    <div class="card-header bg-success text-white">
+                                        <i class="fas fa-sitemap me-2"></i>Relaciones del Catálogo
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="entity-box mb-3">
+                                            <div class="entity-name">ProteinType</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-down text-success"></i>
+                                                <strong>1:N</strong> (Tiene muchos)
+                                                <i class="fas fa-arrow-down text-success"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">ProteinSubType</div>
+                                        </div>
+                                        
+                                        <div class="entity-box mb-3">
+                                            <div class="entity-name">ProteinType & ProteinSubType</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-down text-success"></i>
+                                                <strong>1:N</strong> (Clasifican)
+                                                <i class="fas fa-arrow-down text-success"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">Product</div>
+                                        </div>
+                                        
+                                        <div class="entity-box">
+                                            <div class="entity-name">Supplier</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-right text-success"></i>
+                                                <strong>1:N</strong> (Provee)
+                                                <i class="fas fa-arrow-left text-success"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">Product</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card relationship-card">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-exchange-alt me-2"></i>Relaciones de Transacciones
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="entity-box mb-3">
+                                            <div class="entity-name">Sale</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-down text-info"></i>
+                                                <strong>1:N</strong> (Contiene)
+                                                <i class="fas fa-arrow-down text-info"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">SaleItem</div>
+                                        </div>
+                                        
+                                        <div class="entity-box mb-3">
+                                            <div class="entity-name">Sale</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-right text-info"></i>
+                                                <strong>N:1</strong> (Realizada por)
+                                                <i class="fas fa-arrow-left text-info"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">User</div>
+                                        </div>
+                                        
+                                        <div class="entity-box">
+                                            <div class="entity-name">Sale</div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-field text-center">
+                                                <i class="fas fa-arrow-right text-info"></i>
+                                                <strong>N:1</strong> (Cliente asociado)
+                                                <i class="fas fa-arrow-left text-info"></i>
+                                            </div>
+                                            <div class="relationship-line"></div>
+                                            <div class="entity-name">Customer</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <i class="fas fa-info-circle me-2"></i>Relación Clave: Venta - Ítems
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4 text-center">
+                                                <div class="entity-box">
+                                                    <div class="entity-name">Sale</div>
+                                                    <div class="entity-field">(Ticket/Factura)</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <i class="fas fa-arrow-right fa-2x text-primary"></i>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-danger">onDelete: Cascade</span>
+                                                </div>
+                                                <p class="small mt-2">Si se elimina una Venta, todos sus ítems se eliminan automáticamente</p>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <div class="entity-box">
+                                                    <div class="entity-name">SaleItem</div>
+                                                    <div class="entity-field">(Líneas del Ticket)</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Catalog Tab -->
+                <div class="tab-pane fade" id="catalog" role="tabpanel">
+                    <div class="diagram-container">
+                        <h4 class="mb-4">Estructura del Catálogo de Productos</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white text-center">
+                                        <i class="fas fa-sitemap me-2"></i>Jerarquía de Productos
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center mb-4">
+                                            <div class="entity-box mx-auto" style="max-width: 300px;">
+                                                <div class="entity-name">
+                                                    <i class="fas fa-layer-group me-2"></i>Catálogo de Productos
+                                                </div>
+                                            </div>
+                                            <div class="relationship-line mx-auto" style="width: 200px;"></div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinType</div>
+                                                    <div class="entity-field">(Tipo: Res, Cerdo, Pollo)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 150px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-primary">Ejemplo: "Res"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinType</div>
+                                                    <div class="entity-field">(Tipo: Res, Cerdo, Pollo)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 150px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-primary">Ejemplo: "Cerdo"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mt-3">
+                                            <div class="col-md-3">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinSubType</div>
+                                                    <div class="entity-field">(Subtipo/Corte)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 100px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-success">Ej: "Paleta"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinSubType</div>
+                                                    <div class="entity-field">(Subtipo/Corte)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 100px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-success">Ej: "Lomo"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinSubType</div>
+                                                    <div class="entity-field">(Subtipo/Corte)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 100px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-success">Ej: "Chuleta"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="entity-box text-center">
+                                                    <div class="entity-name">ProteinSubType</div>
+                                                    <div class="entity-field">(Subtipo/Corte)</div>
+                                                    <div class="relationship-line mx-auto" style="width: 100px;"></div>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-success">Ej: "Costilla"</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center mt-4">
+                                            <div class="relationship-line mx-auto" style="width: 300px;"></div>
+                                            <div class="entity-box mx-auto" style="max-width: 400px;">
+                                                <div class="entity-name">
+                                                    <i class="fas fa-box me-2"></i>Product
+                                                </div>
+                                                <div class="entity-field">(Artículo final para venta)</div>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-warning">Ej: "Paleta de Cerdo - 1kg"</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflows Section -->
+        <section id="workflows" class="mb-5">
+            <h2 class="mb-4">Flujos de Trabajo Principales</h2>
+            
+            <!-- Sales Process -->
+            <div class="diagram-container mb-4">
+                <h4 class="mb-4">
+                    <i class="fas fa-shopping-cart me-2 text-primary"></i>
+                    Proceso de Venta
+                </h4>
+                
+                <div class="flow-step">
+                    <div class="flow-number">1</div>
+                    <div class="flow-content">
+                        <h5>Iniciar Venta</h5>
+                        <p>Usuario (Cajero/Admin) accede al módulo de ventas y selecciona productos</p>
+                        <span class="badge bg-light text-dark">POST /sales</span>
+                    </div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="flow-number">2</div>
+                    <div class="flow-content">
+                        <h5>Validar Datos</h5>
+                        <p>Sistema valida que los productos existan y las cantidades sean mayores a 0</p>
+                        <span class="badge bg-info">Validación</span>
+                    </div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="flow-number">3</div>
+                    <div class="flow-content">
+                        <h5>Calcular Total</h5>
+                        <p>Se calcula el total sumando todos los lineTotal de los ítems</p>
+                        <span class="badge bg-warning">Cálculo</span>
+                    </div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="flow-number">4</div>
+                    <div class="flow-content">
+                        <h5>Crear Transacción</h5>
+                        <p>Se inicia una transacción de base de datos para crear la Sale y sus SaleItems</p>
+                        <span class="badge bg-success">DB Transaction</span>
+                    </div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="flow-number">5</div>
+                    <div class="flow-content">
+                        <h5>Actualizar Inventario</h5>
+                        <p>Se resta la cantidad vendida del stock de cada Product</p>
+                        <span class="badge bg-danger">Stock Update</span>
+                    </div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="flow-number">6</div>
+                    <div class="flow-content">
+                        <h5>Generar Factura</h5>
+                        <p>Se llama al InvoiceService para crear un archivo Excel con los datos de la venta</p>
+                        <span class="badge bg-primary">Excel Generation</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Authentication Process -->
+            <div class="diagram-container mb-4">
+                <h4 class="mb-4">
+                    <i class="fas fa-user-lock me-2 text-success"></i>
+                    Proceso de Autenticación
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="flow-step">
+                            <div class="flow-number">1</div>
+                            <div class="flow-content">
+                                <h5>Login</h5>
+                                <p>Usuario envía credenciales a POST /auth/login</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-step">
+                            <div class="flow-number">2</div>
+                            <div class="flow-content">
+                                <h5>Verificar Credenciales</h5>
+                                <p>AuthService comprueba email y contraseña con bcrypt</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-step">
+                            <div class="flow-number">3</div>
+                            <div class="flow-content">
+                                <h5>Generar Token</h5>
+                                <p>Si es válido, se genera un JWT con id, role y name del usuario</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="flow-step">
+                            <div class="flow-number">4</div>
+                            <div class="flow-content">
+                                <h5>Almacenar Token</h5>
+                                <p>Frontend almacena el token para futuras peticiones</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-step">
+                            <div class="flow-number">5</div>
+                            <div class="flow-content">
+                                <h5>Validar Acceso</h5>
+                                <p>Para rutas protegidas, AuthGuard valida el token en las cabeceras</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-step">
+                            <div class="flow-number">6</div>
+                            <div class="flow-content">
+                                <h5>Verificar Roles</h5>
+                                <p>RolesGuard comprueba si el usuario tiene permisos para la acción</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Control de Accesos por Rol
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Administrador (ADMIN)</h6>
+                                <ul>
+                                    <li>Gestión completa de usuarios</li>
+                                    <li>Crear y editar clientes</li>
+                                    <li>Acceso a todos los reportes</li>
+                                    <li>Configuración del sistema</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Mostrador (MOSTRADOR)</h6>
+                                <ul>
+                                    <li>Realizar ventas</li>
+                                    <li>Consultar productos</li>
+                                    <li>Ver inventario</li>
+                                    <li>Acceso limitado a reportes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Seeding Process -->
+            <div class="diagram-container">
+                <h4 class="mb-4">
+                    <i class="fas fa-database me-2 text-info"></i>
+                    Proceso de Carga de Datos (Seeding)
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-seedling fa-2x text-success mb-3"></i>
+                                <h5>Catalog Seed</h5>
+                                <p>Llena la base de datos con el catálogo inicial de productos (Res, Cerdo) y sus subtipos (cortes)</p>
+                                <span class="badge bg-success">catalog_seed.ts</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                                <h5>User Seed</h5>
+                                <p>Crea usuarios por defecto (admins, cajeros) con contraseñas hasheadas</p>
+                                <span class="badge bg-primary">user_extra_seed.ts</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-chart-bar fa-2x text-warning mb-3"></i>
+                                <h5>History Seed</h5>
+                                <p>Genera 120 días de historial de ventas falsas para pruebas de reportes</p>
+                                <span class="badge bg-warning">history_seed.ts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Sistema PoS Cueramaro Prime</h5>
+                    <p>Backend NestJS + PostgreSQL + Prisma ORM</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Desarrollado con <i class="fas fa-heart text-danger"></i> para carnicerías</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

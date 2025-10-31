@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuerámaro Prime POS - Casos de Uso e Historias de Usuario</title>
+<style>
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f4f6f8;
+        color: #222;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background: linear-gradient(90deg, #f57c00, #0a59c1);
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+    h1, h2, h3 {
+        margin-top: 0;
+    }
+    section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .cuadro {
+        background: #fafafa;
+        border-left: 5px solid #0a59c1;
+        padding: 10px 15px;
+        margin: 10px 0;
+    }
+    details {
+        margin-top: 15px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+    }
+    summary {
+        font-weight: 600;
+        cursor: pointer;
+        color: #0a59c1;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    li {
+        margin: 6px 0;
+    }
+    input[type="checkbox"] {
+        transform: scale(1.2);
+        margin-right: 10px;
+        accent-color: #0a59c1;
+    }
+    .footer {
+        text-align: center;
+        font-size: 0.9em;
+        color: #555;
+        margin-bottom: 40px;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>📋 Cuerámaro Prime POS</h1>
+    <p>Casos de Uso e Historias de Usuario (Basado en análisis técnico + reunión de requerimientos)</p>
+</header>
+
+<section>
+    <h2>🏛️ Casos de Uso Críticos (UML)</h2>
+
+    <details open>
+        <summary>CU-01: Procesar Venta en Punto de Venta (POS)</summary>
+        <div class="cuadro">
+            <p><b>Actor Principal:</b> Cajero/Vendedor</p>
+            <p><b>Prioridad:</b> CRÍTICA</p>
+            <p><b>Descripción:</b> Registra una venta completa asociada a un cliente y genera la Nota de Venta con validez legal.</p>
+        </div>
+        <ul>
+            <li><input type="checkbox"> Iniciar sesión en el POS</li>
+            <li><input type="checkbox"> Seleccionar cliente (Mostrador o Crédito)</li>
+            <li><input type="checkbox"> Escanear o seleccionar producto manualmente</li>
+            <li><input type="checkbox"> Conectar con báscula Torey Label 40</li>
+            <li><input type="checkbox"> Editar precio unitario si es necesario</li>
+            <li><input type="checkbox"> Generar Nota de Venta PDF idéntica al formato Excel</li>
+            <li><input type="checkbox"> Incluir texto legal “Pagaré” (número y letra)</li>
+            <li><input type="checkbox"> Crear registro en Cuentas por Cobrar si aplica</li>
+        </ul>
+    </details>
+
+    <details>
+        <summary>CU-02: Configurar Cliente para Crédito</summary>
+        <div class="cuadro">
+            <p><b>Actor Principal:</b> Administrador</p>
+            <p><b>Prioridad:</b> Alta</p>
+            <p><b>Descripción:</b> Registrar o modificar un cliente con datos fiscales y condiciones de crédito.</p>
+        </div>
+        <ul>
+            <li><input type="checkbox"> Registrar datos personales y fiscales</li>
+            <li><input type="checkbox"> Establecer tipo de cliente (Contado/Crédito)</li>
+            <li><input type="checkbox"> Definir días de plazo y límite de crédito</li>
+            <li><input type="checkbox"> Guardar y validar que aparezca en el POS</li>
+        </ul>
+    </details>
+
+    <details>
+        <summary>CU-03: Visualizar Dashboard Principal (KPIs)</summary>
+        <div class="cuadro">
+            <p><b>Actor Principal:</b> Administrador</p>
+            <p><b>Prioridad:</b> Alta</p>
+            <p><b>Descripción:</b> Visualiza métricas clave: ventas, clientes, saldos y productos rezagados.</p>
+        </div>
+        <ul>
+            <li><input type="checkbox"> Tarjeta "Ventas del Día/Semana/Mes"</li>
+            <li><input type="checkbox"> Generar reporte PDF desde Dashboard</li>
+            <li><input type="checkbox"> Tarjeta "Clientes con Cuentas por Cobrar"</li>
+            <li><input type="checkbox"> Tarjeta "Productos Rezagados" con desglose</li>
+        </ul>
+    </details>
+</section>
+
+<section>
+    <h2>📖 Historias de Usuario</h2>
+
+    <details open>
+        <summary>Prioridad CRÍTICA</summary>
+        <ul>
+            <li><input type="checkbox"> HU-01: Generar Nota de Venta PDF con pagaré (formato Excel)</li>
+            <li><input type="checkbox"> HU-02: Aplicar paleta azul/naranja personalizada (Cuerámaro Prime)</li>
+            <li><input type="checkbox"> HU-03: Mostrar todos los montos en formato moneda MXN</li>
+        </ul>
+    </details>
+
+    <details>
+        <summary>Prioridad ALTA</summary>
+        <ul>
+            <li><input type="checkbox"> HU-04: Mostrar productos rezagados en Dashboard</li>
+            <li><input type="checkbox"> HU-05: Cambiar vista de ventas (día, semana, mes) con PDF</li>
+            <li><input type="checkbox"> HU-06: Cargar datos automáticos de cliente crédito en POS</li>
+            <li><input type="checkbox"> HU-07: Selector manual categorizado de productos</li>
+            <li><input type="checkbox"> HU-08: Restringir permisos de empleados (solo ventas/productos)</li>
+            <li><input type="checkbox"> HU-09: Formato de texto uniforme (mayúscula inicial)</li>
+        </ul>
+    </details>
+</section>
+
+<div class="footer">
+    <p>© 2025 Cuerámaro Prime POS — Documento de análisis técnico con checklist interactivo</p>
+</div>
+
+</body>
+</html>
