@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { IsBoolean, IsEmail, IsEnum, IsInt, IsOptional, IsString, IsUrl, Length, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUrl, Length, Min } from 'class-validator';
 import { CreditTerms } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
@@ -113,6 +113,19 @@ class CreateSupplierDto {
   @IsOptional()
   @IsString()
   proteinSubType?: string;
+
+  @IsOptional()
+  @IsIn(['punto_recoleccion', 'entrega_domicilio'])
+  acquisitionMethod?: 'punto_recoleccion' | 'entrega_domicilio';
+
+  // Multiselección enviada como arrays (se persiste en commercialInfo)
+  @IsOptional()
+  @IsArray()
+  proteinTypeIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  proteinSubTypeIds?: string[];
 }
 
 @Controller('suppliers')
@@ -121,7 +134,7 @@ export class SuppliersController {
 
   @Get()
   async list() {
-    return this.prisma.supplier.findMany({ orderBy: { name: 'asc' }, include: { proteinType: true, proteinSubType: true } });
+    return this.prisma.supplier.findMany({ orderBy: { createdAt: 'asc' }, include: { proteinType: true, proteinSubType: true } });
   }
 
 
@@ -129,16 +142,27 @@ export class SuppliersController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   async create(@Body() body: CreateSupplierDto) {
-    const { proteinTypeId, proteinSubTypeId, ...rest } = body as any;
+    const { proteinTypeId, proteinSubTypeId, proteinTypeIds, proteinSubTypeIds, ...rest } = body as any;
     try {
-      return await (this.prisma as any).supplier.create({ data: { ...rest, proteinTypeId, proteinSubTypeId } });
+      // Persistir arrays en commercialInfo
+      const data: any = { ...rest, proteinTypeId, proteinSubTypeId };
+      if (proteinTypeIds || proteinSubTypeIds) {
+        data.commercialInfo = {
+          ...(rest.commercialInfo || {}),
+          proteinTypeIds: proteinTypeIds || [],
+          proteinSubTypeIds: proteinSubTypeIds || []
+        };
+      }
+      return await (this.prisma as any).supplier.create({ data });
     } catch (e) {
       // Fallback: guarda nombres en commercialInfo si catálogo relacional no existe todavía
       const data = { ...rest } as any;
       data.commercialInfo = {
         ...(rest.commercialInfo || {}),
         proteinTypeId: proteinTypeId || null,
-        proteinSubTypeId: proteinSubTypeId || null
+        proteinSubTypeId: proteinSubTypeId || null,
+        proteinTypeIds: proteinTypeIds || [],
+        proteinSubTypeIds: proteinSubTypeIds || []
       };
       return this.prisma.supplier.create({ data });
     }
@@ -148,16 +172,26 @@ export class SuppliersController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   async update(@Param('id') id: string, @Body() body: Partial<CreateSupplierDto>) {
-    const { proteinTypeId, proteinSubTypeId, ...rest } = body as any;
+    const { proteinTypeId, proteinSubTypeId, proteinTypeIds, proteinSubTypeIds, ...rest } = body as any;
     try {
-      return await (this.prisma as any).supplier.update({ where: { id }, data: { ...rest, proteinTypeId, proteinSubTypeId } });
+      const data: any = { ...rest, proteinTypeId, proteinSubTypeId };
+      if (proteinTypeIds || proteinSubTypeIds) {
+        data.commercialInfo = {
+          ...(rest as any)?.commercialInfo,
+          proteinTypeIds: proteinTypeIds || [],
+          proteinSubTypeIds: proteinSubTypeIds || []
+        };
+      }
+      return await (this.prisma as any).supplier.update({ where: { id }, data });
     } catch (e) {
       const data = { ...rest } as any;
-      if (proteinTypeId || proteinSubTypeId) {
+      if (proteinTypeId || proteinSubTypeId || proteinTypeIds || proteinSubTypeIds) {
         data.commercialInfo = {
           ...(rest as any)?.commercialInfo,
           proteinTypeId: proteinTypeId || null,
-          proteinSubTypeId: proteinSubTypeId || null
+          proteinSubTypeId: proteinSubTypeId || null,
+          proteinTypeIds: proteinTypeIds || [],
+          proteinSubTypeIds: proteinSubTypeIds || []
         };
       }
       return this.prisma.supplier.update({ where: { id }, data });

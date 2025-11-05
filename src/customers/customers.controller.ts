@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, Length, Min } from 'class-validator';
 import { CreditTerms } from '@prisma/client';
@@ -36,6 +36,22 @@ class CreateCustomerDto {
   whatsapp?: string;
 
   @IsOptional()
+  @IsString()
+  phonePersonal?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsappPersonal?: string;
+
+  @IsOptional()
+  @IsString()
+  phoneBusiness?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsappBusiness?: string;
+
+  @IsOptional()
   @IsEmail()
   email?: string;
 
@@ -63,7 +79,7 @@ export class CustomersController {
 
   @Get()
   async list() {
-    return this.prisma.customer.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.customer.findMany({ orderBy: { createdAt: 'asc' } });
   }
 
 
@@ -101,5 +117,34 @@ export class CustomersController {
   async remove(@Param('id') id: string) {
     await this.prisma.customer.delete({ where: { id } });
     return { ok: true };
+  }
+
+  // Créditos por cliente (ventas con saldo)
+  @Get(':id/receivables')
+  async receivables(@Param('id') id: string) {
+    const customer = await this.prisma.customer.findUnique({ where: { id }, select: { id: true, name: true, creditDays: true } });
+    if (!customer) throw new BadRequestException('Cliente no encontrado');
+    const sales = await this.prisma.sale.findMany({
+      where: { customerId: id },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, createdAt: true, creditDueDate: true, total: true, paidAmount: true, paymentMethod: true }
+    });
+    const items = sales.map((s) => {
+      const paid = Number(s.paidAmount || 0);
+      const due = Math.max(0, Number(s.total || 0) - paid);
+      return {
+        id: s.id,
+        folio: (s.id || '').slice(0, 8),
+        createdAt: s.createdAt,
+        creditDueDate: s.creditDueDate,
+        total: s.total,
+        paidAmount: paid,
+        due,
+        paymentMethod: s.paymentMethod
+      };
+    }).filter((x) => x.due > 0 || x.paymentMethod === 'credito');
+    const totalDue = items.reduce((acc, i) => acc + i.due, 0);
+    const debts = items.filter((i) => i.due > 0).length;
+    return { customer: { id: customer.id, name: customer.name, creditDays: customer.creditDays }, totalDue, debts, items };
   }
 }

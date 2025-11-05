@@ -16,7 +16,13 @@ body {
   min-height: 100vh;
   background-color: #ffffff; /* fallback para evitar parpadeos */
   overflow-x: hidden;
+  text-transform: uppercase;
 }
+
+/* Forzar mayúsculas también en controles de formulario y opciones */
+input, select, textarea, button, option { text-transform: uppercase; }
+/* Placeholders en mayúsculas */
+input::placeholder, textarea::placeholder { text-transform: uppercase; }
 
 /* Login: degradado radial especificado y overlay de blur */
 .login-bg {
@@ -196,6 +202,10 @@ body:not(.login-page) {
   -webkit-backdrop-filter: blur(6px);
   transition: all 0.3s ease-in-out;
 }
+.panel:focus-within { outline: none; }
+
+/* Mejorar responsividad del contenedor principal: sin margen azul a la izquierda */
+.app-bg > .grid { margin-left: 0 !important; }
 .card {
   background: rgba(255,255,255,0.9);
   border-radius: 16px;

@@ -24,7 +24,7 @@ function SaleTicket({ folio, customer, total, items }: SaleTicketProps) {
   return (
     <Document>
       <Page size="A6" style={styles.page}>
-        <Text style={styles.header}>Cuerámaro Prime POS</Text>
+      <Text style={styles.header}>Cuerámaro Prime</Text>
         <Text>Folio: {folio}</Text>
         {customer && <Text>Cliente: {customer}</Text>}
         <View style={{ marginTop: 12 }}>

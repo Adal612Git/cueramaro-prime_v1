@@ -11,7 +11,7 @@ type SaleItemInput = {
 export function useCreateSale() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { customerId?: string; paymentMethod: 'efectivo' | 'transferencia' | 'credito' | 'tarjeta' | 'otro'; notes?: string; creditDueDate?: string; items: SaleItemInput[] }) => {
+    mutationFn: async (payload: { customerId?: string; paymentMethod: 'efectivo' | 'transferencia' | 'credito' | 'tarjeta' | 'otro'; notes?: string; creditDueDate?: string; items: SaleItemInput[]; amountInWords?: string }) => {
       const { data } = await api.post('/sales', payload);
       return data;
     },
@@ -21,4 +21,3 @@ export function useCreateSale() {
     }
   });
 }
-

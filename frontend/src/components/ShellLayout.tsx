@@ -28,14 +28,14 @@ export function ShellLayout({ children }: PropsWithChildren) {
     return links;
   })();
   return (
-    <div className="min-h-screen app-bg">
-      <header className="flex flex-col gap-4 px-6 py-4 text-primary md:flex-row md:items-center md:justify-between">
+    <div className="min-h-screen app-bg uppercase">
+      <header className="flex flex-col gap-4 px-2 md:px-4 lg:px-6 py-4 text-primary md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Menu className="hidden md:block" />
-          <img src={logoSymbol} alt="Cuerámaro Prime" className="h-12 w-12 rounded-full bg-white/10 p-1" />
+          <img src={logoSymbol} alt="Cuerámaro Prime" className="h-16 w-16 rounded-full bg-white/10 p-1" />
           <div>
             <p className="text-sm tracking-[0.3em] text-primary/70">¡Bienvenido a</p>
-            <h1 className="text-2xl font-bold">Cuerámaro Prime POS</h1>
+            <h1 className="text-2xl font-bold text-white">Cuerámaro Prime</h1>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -47,8 +47,8 @@ export function ShellLayout({ children }: PropsWithChildren) {
           )}
         </div>
       </header>
-      <div className="grid gap-6 px-[clamp(1rem,4vw,3rem)] pb-10 md:grid-cols-[260px_1fr] max-w-[1200px] mx-auto w-full">
-        <aside className="sidebar rounded-3xl p-6 shadow-lg">
+      <div className="grid gap-4 px-0 md:px-4 lg:px-6 pb-10 md:grid-cols-[240px_minmax(0,1fr)] w-full">
+        <aside className="sidebar rounded-none md:rounded-3xl p-4 md:p-6 shadow-lg md:ml-0">
           <nav className="flex flex-col gap-2">
             {visible.map(({ to, label, icon: Icon }) => (
               <NavLink
@@ -67,12 +67,15 @@ export function ShellLayout({ children }: PropsWithChildren) {
             ))}
           </nav>
         </aside>
-        <main className="panel p-6">
+        <main className="panel p-4 md:p-6 overflow-x-auto">
           {children}
         </main>
       </div>
-      <footer className="px-6 pb-6 text-center text-xs text-primary/70">
-        {(!user || user.role === 'ADMIN') && <Link to="/reports">Ver reportes detallados</Link>}
+      <footer className="px-6 pb-8 text-center text-primary/80">
+        <div className="mt-6 text-sm">"lo unico imposible es aquello que no intentas"</div>
+        <div className="mt-2 text-xs text-primary/70">
+          {(!user || user.role === 'ADMIN') && <Link to="/reports">Ver reportes detallados</Link>}
+        </div>
       </footer>
     </div>
   );

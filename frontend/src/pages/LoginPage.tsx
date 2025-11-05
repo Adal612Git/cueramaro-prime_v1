@@ -6,7 +6,7 @@ import { Fingerprint, Lock, User } from 'lucide-react';
 import logoFull from '../assets/CUERAMARO-CARNES-LOGO-COMPLETO-sin-fondo.png';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('admin@pos.local');
+  const [email, setEmail] = useState('admin@local');
   const [password, setPassword] = useState('admin123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +33,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-bg">
+    <div className="login-bg uppercase">
       <div className="login-blurs" />
       <div className="login-card mx-4 p-10 fade-in">
         <div className="mb-6 flex flex-col items-center text-center">
-          <img src={logoFull} alt="Cuerámaro Prime" className="mb-3 w-[220px] max-w-[70vw] object-contain" />
-          <h1 className="login-title text-[20px] sm:text-[22px] tracking-wide">INICIANDO SISTEMA...</h1>
+          <img src={logoFull} alt="Cuerámaro Prime" className="mb-3 w-[300px] max-w-[80vw] object-contain" />
+          <h1 className="login-title text-[22px] sm:text-[24px] tracking-wide">INICIANDO SISTEMA...</h1>
         </div>
         <form onSubmit={onSubmit} className="space-y-5">
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-[color:var(--color-primary)]">Usuario</label>
+            <label className="block text-sm font-medium text-[#0a2f6b]">Usuario</label>
             <div className="input-group mt-1">
               <User size={18} className="input-icon" />
               <input
@@ -50,13 +50,13 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-control"
-                placeholder="usuario@pos.local"
+                placeholder="usuario@local"
                 required
               />
             </div>
           </div>
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-[color:var(--color-primary)]">PIN</label>
+            <label className="block text-sm font-medium text-[#0a2f6b]">PIN</label>
             <div className="input-group mt-1">
               <Lock size={18} className="input-icon" />
               <input
@@ -82,7 +82,7 @@ export function LoginPage() {
             <span className="text-xs">Acceso rápido disponible</span>
           </div>
           <p className="pt-4 text-center login-phrase">EXCELENCIA EN CADA CORTE</p>
-          <p className="text-center text-xs text-gray-500">Usa admin@pos.local / admin123 o caja@pos.local / caja123</p>
+          <p className="text-center text-xs text-gray-500">Usa admin@local / admin123 o caja@local / caja123</p>
         </form>
       </div>
     </div>

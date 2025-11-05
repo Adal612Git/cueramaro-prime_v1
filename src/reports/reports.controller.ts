@@ -1,4 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
+import * as XLSX from 'xlsx';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 
 type DashboardResponse = {
@@ -160,5 +164,94 @@ export class ReportsController {
     });
 
     return { count: items.length, items };
+  }
+
+  @Get('export/excel')
+  async exportExcel(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Res() res?: Response
+  ) {
+    const where: any = {};
+    const range: any = {};
+    if (from) range.gte = new Date(from);
+    if (to) range.lte = new Date(to);
+    if (Object.keys(range).length) where.createdAt = range;
+    const sales = await this.prisma.sale.findMany({ where, orderBy: { createdAt: 'asc' } });
+
+    // Intentar Excel con logo usando exceljs; si falla, caer en XLSX simple
+    try {
+      // Cargar exceljs en tiempo de ejecución si está instalado
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const ExcelJS: any = require('exceljs');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('VENTAS');
+
+      // Insertar logo si existe
+      const logoCandidates = [
+        path.resolve(process.cwd(), 'logo', 'CUERAMARO-CARNES-LOGO-COMPLETO-sin-fondo.png'),
+        path.resolve(process.cwd(), 'logo', 'CUERAMARO-CARNES-LOGO-SIMBOLO-sin-fondo.png'),
+        path.resolve(process.cwd(), 'frontend', 'src', 'assets', 'CUERAMARO-CARNES-LOGO-COMPLETO-sin-fondo.png'),
+        path.resolve(process.cwd(), 'frontend', 'src', 'assets', 'CUERAMARO-CARNES-LOGO-SIMBOLO-sin-fondo.png')
+      ];
+      const logoPath = logoCandidates.find((p) => fs.existsSync(p));
+      let titleRow = 1;
+      if (logoPath) {
+        const imageId = wb.addImage({ filename: logoPath, extension: 'png' });
+        ws.addImage(imageId, {
+          tl: { col: 0, row: 0 },
+          ext: { width: 200, height: 60 }
+        });
+        titleRow = 4; // dejar espacio para el logo
+      }
+
+      ws.getRow(titleRow).height = 22;
+      ws.mergeCells(titleRow, 1, titleRow, 3);
+      ws.getCell(titleRow, 1).value = 'REPORTE DE VENTAS';
+      ws.getCell(titleRow, 1).font = { bold: true, size: 14 };
+
+      const headerRow = titleRow + 1;
+      ws.getRow(headerRow).values = ['ID FACTURA', 'FECHA', 'TOTAL (MXN)'];
+      ws.getRow(headerRow).font = { bold: true };
+      let r = headerRow + 1;
+      for (const s of sales) {
+        const folio = (s.id || '').slice(0, 8);
+        ws.getCell(r, 1).value = folio;
+        ws.getCell(r, 2).value = s.createdAt;
+        ws.getCell(r, 2).numFmt = 'yyyy-mm-dd hh:mm';
+        ws.getCell(r, 3).value = s.total;
+        ws.getCell(r, 3).numFmt = '$#,##0.00';
+        r++;
+      }
+      ws.columns = [
+        { key: 'id', width: 24 },
+        { key: 'fecha', width: 22 },
+        { key: 'total', width: 16 }
+      ];
+
+      const buf = await wb.xlsx.writeBuffer();
+      const stamp = new Date().toISOString().slice(0, 10);
+      res!.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res!.setHeader('Content-Disposition', `attachment; filename="reporte_ventas_${stamp}.xlsx"`);
+      res!.send(Buffer.from(buf));
+      return;
+    } catch (e) {
+      // Fallback simple con xlsx
+      const title = 'REPORTE DE VENTAS';
+      const rows = [
+        [title],
+        ['ID FACTURA', 'FECHA', 'TOTAL (MXN)'],
+        ...sales.map((s) => [String((s.id || '').slice(0, 8)), s.createdAt.toISOString(), s.total])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'VENTAS');
+      (ws['!cols'] as any) = [{ wch: 24 }, { wch: 22 }, { wch: 16 }];
+      const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+      const stamp = new Date().toISOString().slice(0, 10);
+      res!.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res!.setHeader('Content-Disposition', `attachment; filename="reporte_ventas_${stamp}.xlsx"`);
+      res!.send(buf);
+    }
   }
 }

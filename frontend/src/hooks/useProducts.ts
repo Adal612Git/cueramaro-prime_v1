@@ -7,6 +7,7 @@ export type Product = {
   sku?: string | null;
   price: number;
   stock: number;
+  stockQty?: number | null;
   unit?: string | null;
   category?: string | null;
   supplier?: { id: string; name: string } | null;

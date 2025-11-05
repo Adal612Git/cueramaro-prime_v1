@@ -42,6 +42,19 @@ export function ReportsPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  const exportExcel = async () => {
+    const apiBase = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api') as string;
+    const qs = new URLSearchParams();
+    if (from) qs.set('from', from);
+    if (to) qs.set('to', to);
+    const url = `${apiBase.replace(/\/$/,'')}/reports/export/excel?${qs.toString()}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_ventas_${from || 'inicio'}_${to || new Date().toISOString().slice(0,10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
   return (
     <div className="space-y-6">
       <h2 className="module-title text-2xl">Reportes</h2>
@@ -65,8 +78,9 @@ export function ReportsPage() {
         <button className="rounded bg-gray-200 px-3 py-2" onClick={() => { setFrom(''); setTo(''); refetch(); }}>
           Limpiar
         </button>
-        <div className="ml-auto">
-          <button className="rounded bg-green-600 px-3 py-2 font-semibold text-white" onClick={exportCsv}>Exportar</button>
+        <div className="ml-auto space-x-2">
+          <button className="rounded bg-green-600 px-3 py-2 font-semibold text-white" onClick={exportExcel}>Exportar Excel</button>
+          <button className="rounded bg-gray-600 px-3 py-2 font-semibold text-white" onClick={exportCsv}>Exportar CSV</button>
         </div>
       </div>
       {isLoading ? (

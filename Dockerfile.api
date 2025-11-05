@@ -4,5 +4,6 @@ COPY package.json pnpm-lock.yaml* tsconfig*.json nest-cli.json jest.config.ts ./
 COPY src ./src
 COPY prisma ./prisma
 RUN corepack enable && pnpm install --frozen-lockfile || pnpm install
+RUN apk add --no-cache zip unzip python3
 RUN pnpm build || true
 CMD ["pnpm", "dev"]

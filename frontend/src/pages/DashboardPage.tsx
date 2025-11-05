@@ -70,7 +70,7 @@ export function DashboardPage() {
         value: `${formatCurrency(data.totals.sales)}`,
         change: `${data.recentSales.length} ventas recientes`,
         icon: ShoppingBag,
-        description: 'Datos en vivo desde ElectricSQL'
+        description: ''
       },
       {
         title: 'Productos rezagados',
@@ -230,6 +230,9 @@ export function DashboardPage() {
           </div>
         </div>
       </section>
+      <div className="text-center text-sm text-primary/80 py-4">
+        "lo unico imposible es aquello que no intentas"
+      </div>
     </div>
   );
 }

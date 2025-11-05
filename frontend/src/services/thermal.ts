@@ -34,7 +34,7 @@ export function printSaleTicket(params: {
   const html = `
     <html><head><meta charset="utf-8"/>${styles}</head>
     <body>
-      <div class="center bold">${params.storeName || 'Cuerámaro Prime POS'}</div>
+      <div class="center bold">${params.storeName || 'Cuerámaro Prime'}</div>
       <div class="center">Folio: ${params.folio}</div>
       <div class="center small">${params.date.toLocaleString()}</div>
       <div class="hr"></div>
@@ -53,4 +53,3 @@ export function printSaleTicket(params: {
   w.document.write(html);
   w.document.close();
 }
-

@@ -27,6 +27,11 @@ enum PaymentMethod {
   otro
 }
 
+enum AcquisitionMethod {
+  punto_recoleccion
+  entrega_domicilio
+}
+
 model Supplier {
   id        String   @id @default(cuid())
   name      String
@@ -55,6 +60,7 @@ model Supplier {
   bankAccount    String?
   clabe          String?
   directDelivery Boolean @default(false) // "Llega directo"
+  acquisitionMethod AcquisitionMethod?
   proteinTypeId   String?
   proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
   proteinSubTypeId String?
@@ -76,8 +82,8 @@ model Product {
   unit        String?   // 'kg' | 'pz' (por ahora libre)
   stock       Int       @default(0) // legado para vistas actuales
   stockQty    Float?    // soporta kg/piezas decimales
-  supplierId  String?
-  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  supplierId  String
+  supplier    Supplier  @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   proteinTypeId   String?
   proteinType     ProteinType? @relation(fields: [proteinTypeId], references: [id])
   proteinSubTypeId String?
@@ -86,6 +92,8 @@ model Product {
   lots        InventoryLot[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@unique([name])
 }
 
 model Customer {
@@ -94,6 +102,10 @@ model Customer {
   name      String
   phone     String?
   whatsapp  String?
+  phonePersonal   String?
+  whatsappPersonal String?
+  phoneBusiness   String?
+  whatsappBusiness String?
   email     String?
   businessName    String?
   personalAddress String?
@@ -133,6 +145,7 @@ model Sale {
   creditDueDate DateTime?
   createdAt DateTime @default(now())
   items     SaleItem[]
+  payments  Payment[]
 }
 
 model SaleItem {
@@ -145,6 +158,16 @@ model SaleItem {
   unitPrice Float
   discount  Float   @default(0)
   lineTotal Float
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  amount    Float
+  method    PaymentMethod?
+  notes     String?
+  createdAt DateTime @default(now())
 }
 
 model User {
